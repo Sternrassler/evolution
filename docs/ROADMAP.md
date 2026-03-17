@@ -62,9 +62,10 @@ evolution/
 ├── Makefile
 ├── go.mod
 ├── go.sum
-├── CONCEPT.md
-├── ARCHITECTURE.md
-└── ROADMAP.md
+├── docs/
+│   ├── CONCEPT.md
+│   ├── ARCHITECTURE.md
+│   └── ROADMAP.md
 ```
 
 ### Empfohlene Werkzeuge

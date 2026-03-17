@@ -31,7 +31,7 @@ gen ──── sim/world
 config ─ (keine Projekt-Imports)
 ```
 
-Details: [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`CONCEPT.md`](CONCEPT.md) · [`ROADMAP.md`](ROADMAP.md) · [`docs/adr/`](docs/adr/)
+Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/CONCEPT.md`](docs/CONCEPT.md) · [`docs/ROADMAP.md`](docs/ROADMAP.md) · [`docs/adr/`](docs/adr/)
 
 ## Meilensteine
 

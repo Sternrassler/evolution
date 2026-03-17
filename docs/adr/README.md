@@ -12,6 +12,8 @@ nicht sichtbar sind. Neue ADRs hier eintragen.
 | [ADR-005](ADR-005-phase2-sequentiell.md) | Phase 2 sequentiell im MVP | Accepted | Performance, Parallelismus |
 | [ADR-006](ADR-006-ghost-rows-partition-grenzen.md) | Ghost-Rows, 1-Tick-Latenz akzeptiert | Accepted | Partitionierung, Parallelismus |
 | [ADR-007](ADR-007-switch-case-statt-gene-registry.md) | `switch/case` statt Registry | Accepted | Hot-Path, Erweiterbarkeit |
+| [ADR-008](ADR-008-tick-loop-steuerung.md) | Tick-Loop — synchrones `Step()` in `Update()` | Accepted | Game-Loop, Simulationssteuerung |
+| [ADR-009](ADR-009-rendering-strategie.md) | Rendering — Pixel-Buffer + Zoom-abhängig | Accepted | Performance, Darstellung |
 
 ## Format
 

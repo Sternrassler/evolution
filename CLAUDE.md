@@ -4,10 +4,10 @@
 
 Reine Spezifikation, **0% implementiert**. Alle Entscheidungen liegen in:
 
-- `CONCEPT.md` — fachliche Anforderungen
-- `ARCHITECTURE.md` — technische Architektur (maßgeblich)
-- `ROADMAP.md` — Implementierungsreihenfolge M0–M14
-- `docs/adr/` — 7 ADRs für nicht-offensichtliche Entscheidungen
+- `docs/CONCEPT.md` — fachliche Anforderungen
+- `docs/ARCHITECTURE.md` — technische Architektur (maßgeblich)
+- `docs/ROADMAP.md` — Implementierungsreihenfolge M0–M14
+- `docs/adr/` — ADRs für nicht-offensichtliche Entscheidungen
 
 ---
 
@@ -130,4 +130,4 @@ M9 ui → M10 cmd  ← MVP
 M11 Räuber → M12 Umwelt → M13 Editor → M14 Detail
 ```
 
-Vollständige Details: `ROADMAP.md`
+Vollständige Details: `docs/ROADMAP.md`
