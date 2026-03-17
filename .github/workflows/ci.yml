@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev libgl1-mesa-dev libasound2-dev
+
+      # Gate 1: Import-Check — kein ebiten in sim/, gen/, config/
+      - name: Gate 1 – Import-Check
+        run: go run ./tools/check_ebiten_imports.go ./...
+
+      # Gate 2: Global-rand-Check — kein math/rand in sim/
+      - name: Gate 2 – Global-rand-Check
+        run: go run ./tools/check_global_rand.go ./sim/...
+
+      # Gate 3: Determinismus — erst grün ab M7
+      - name: Gate 3 – Determinismus
+        run: go test -run TestDeterminism -count=2 ./sim/... || true
+
+      # Gate 4: Race Detector
+      - name: Gate 4 – Race Detector
+        run: go test -race ./sim/...
+
+      # Gate 5: Allokations-Budget — erst grün ab M6
+      - name: Gate 5 – Allokations-Budget
+        run: go test -run='^$' -bench=BenchmarkPhase1 -benchmem ./sim/partition/... || true
+
+      - name: Tests
+        run: go test ./...

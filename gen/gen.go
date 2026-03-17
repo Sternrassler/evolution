@@ -49,9 +49,9 @@ func (p ProceduralSource) Generate(cfg config.Config, rng config.RandSource) []w
 
 	// Schritt 2: 3 Cellular-Automaton-Iterationen
 	buf := make([]world.Tile, w*h)
-	for iter := 0; iter < 3; iter++ {
-		for y := 0; y < h; y++ {
-			for x := 0; x < w; x++ {
+	for range 3 {
+		for y := range h {
+			for x := range w {
 				buf[y*w+x].Biome = majorityBiome(tiles, x, y, w, h)
 			}
 		}

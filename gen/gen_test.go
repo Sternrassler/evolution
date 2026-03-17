@@ -143,7 +143,7 @@ func TestGenerateWorld_BiomeDistribution(t *testing.T) {
 		}
 
 		// Keine Biom-Klasse sollte mehr als 95% der Fläche belegen
-		for b := 0; b < 3; b++ {
+		for b := range 3 {
 			frac := float64(counts[b]) / float64(total)
 			if frac > 0.95 {
 				rt.Errorf("Biom %d belegt %.1f%% der Fläche — zu dominant", b, frac*100)

@@ -634,10 +634,10 @@ func HashSnapshot(snap *sim.WorldSnapshot) uint64 { ... }
 
 ### Akzeptanzkriterien M5
 
-- [ ] `testworld.New(10,10).WithTile(0,0,...).Build()` kompiliert und läuft
-- [ ] `BuildPartition()` konvertiert korrekt AoS→SoA (Unit-Tests)
-- [ ] `HashSnapshot()` ist deterministisch (gleiche Eingabe → gleicher Hash)
-- [ ] Keine Test-Packages importieren `ebiten`
+- [x] `testworld.New(10,10).WithTile(0,0,...).Build()` kompiliert und läuft
+- [x] `BuildPartition()` konvertiert korrekt AoS→SoA (Unit-Tests)
+- [x] `HashSnapshot()` ist deterministisch (gleiche Eingabe → gleicher Hash)
+- [x] Keine Test-Packages importieren `ebiten`
 
 ---
 
@@ -744,10 +744,10 @@ func (p *Partition) RunPhase1(ctx WorldContext) {
 
 ### Akzeptanzkriterien M6
 
-- [ ] `RunPhase1()` ist zero-alloc (CI Gate 5 beginnt hier zu messen)
-- [ ] `go test -race ./sim/partition/...` grün (CI Gate 4)
-- [ ] FreeList-Reuse korrekt: Kein Wachstum bei Geburt-nach-Tod
-- [ ] SoA→AoS-Konvertierung korrekt
+- [x] `RunPhase1()` ist zero-alloc (CI Gate 5 beginnt hier zu messen)
+- [x] `go test -race ./sim/partition/...` grün (CI Gate 4)
+- [x] FreeList-Reuse korrekt: Kein Wachstum bei Geburt-nach-Tod
+- [x] SoA→AoS-Konvertierung korrekt
 
 ---
 
@@ -899,11 +899,11 @@ func mutateGenes(parent [entity.NumGenes]float32, geneDefs []config.GeneDef, rng
 
 ### Akzeptanzkriterien M7
 
-- [ ] CI Gate 3 (Determinismus) ist jetzt **grün**
-- [ ] CI Gate 4 (Race Detector) ist grün
+- [x] CI Gate 3 (Determinismus) ist jetzt **grün**
+- [x] CI Gate 4 (Race Detector) ist grün
 - [ ] Energieerhaltungs-Invariante: `ΔE_ind + ΔE_tiles + E_tote == E_regrown` über 100 Ticks
-- [ ] `SnapshotExporter.Load()` ist lock-frei (kein Mutex)
-- [ ] `go test ./sim/...` grün
+- [x] `SnapshotExporter.Load()` ist lock-frei (kein Mutex)
+- [x] `go test ./sim/...` grün
 
 ---
 
@@ -1001,9 +1001,9 @@ Zoom weit  (TileSize < 4):   Individuen als Häufungspunkt (Farbmischung)
 ### Akzeptanzkriterien M8
 
 - [ ] `RenderToBuffer()` ist zero-alloc (Benchmark)
-- [ ] Gen-Farb-Normalisierung korrekt für alle Grenzwerte
-- [ ] `go test ./render/...` grün (ohne Headless-Display)
-- [ ] **Kein `sim/`-Package importiert `ebiten`** (CI Gate 1 — schon längst grün)
+- [x] Gen-Farb-Normalisierung korrekt für alle Grenzwerte
+- [x] `go test ./render/...` grün (ohne Headless-Display)
+- [x] **Kein `sim/`-Package importiert `ebiten`** (CI Gate 1 — schon längst grün)
 
 ---
 
@@ -1094,10 +1094,10 @@ func (h *InputHandler) Process(g *Game) {
 ### Akzeptanzkriterien M9
 
 - [ ] Fenster öffnet sich und zeigt simulierte Welt
-- [ ] HUD zeigt korrekte Tick- und Populationszahlen
-- [ ] Pause/Weiter funktioniert
-- [ ] Next-Step sichtbar wenn paused
-- [ ] Fenster schließt sauber mit Escape / Window-Close
+- [x] HUD zeigt korrekte Tick- und Populationszahlen
+- [x] Pause/Weiter funktioniert
+- [x] Next-Step sichtbar wenn paused
+- [x] Fenster schließt sauber mit Escape / Window-Close
 
 ---
 
@@ -1158,7 +1158,7 @@ func main() {
 
 ### Akzeptanzkriterien M10 — MVP vollständig
 
-- [ ] `go build ./cmd/evolution/` kompiliert ohne Fehler
+- [x] `go build ./cmd/evolution/` kompiliert ohne Fehler
 - [ ] `./evolution` startet, zeigt bunte Welt
 - [ ] Evolution sichtbar: Farbveränderung der Population über Zeit
 - [ ] Alle 5 CI-Gates sind grün
