@@ -1,0 +1,11 @@
+# Serena internal state
+.serena/
+
+# Build output
+/bin/
+/dist/
+
+# Go
+*.test
+*.out
+vendor/
