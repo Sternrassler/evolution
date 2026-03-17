@@ -193,11 +193,11 @@ ci: lint test race
 
 ### Akzeptanzkriterien M0
 
-- [ ] `make ci` läuft durch (Gates 3 und 5 dürfen noch fehlschlagen — `exit 0` via `|| true`)
-- [ ] Gate 1 ist grün (kein Code → nichts zu verletzen)
-- [ ] Gate 2 ist grün (kein Code → nichts zu verletzen)
-- [ ] Gate 4 ist grün (kein Code → kein Race)
-- [ ] GitHub Actions Workflow ist sichtbar im Repository
+- [x] `make ci` läuft durch (Gates 3 und 5 dürfen noch fehlschlagen — `exit 0` via `|| true`)
+- [x] Gate 1 ist grün (kein Code → nichts zu verletzen)
+- [x] Gate 2 ist grün (kein Code → nichts zu verletzen)
+- [x] Gate 4 ist grün (kein Code → kein Race)
+- [x] GitHub Actions Workflow ist sichtbar im Repository
 
 ---
 
@@ -302,10 +302,10 @@ func (b *EventBuffer) Events() []Event { return b.events }
 
 ### Akzeptanzkriterien M1
 
-- [ ] `sim/entity` hat **null Imports** auf andere `sim/`-Packages (CI Gate 1 prüft dies)
-- [ ] `go test ./sim/entity/...` grün
-- [ ] `EventBuffer.Append()` ist zero-alloc nach Pre-Allokation (Benchmark)
-- [ ] Kein `math/rand` in `sim/entity/` (CI Gate 2)
+- [x] `sim/entity` hat **null Imports** auf andere `sim/`-Packages (CI Gate 1 prüft dies)
+- [x] `go test ./sim/entity/...` grün
+- [x] `EventBuffer.Append()` ist zero-alloc nach Pre-Allokation (Benchmark)
+- [x] Kein `math/rand` in `sim/entity/` (CI Gate 2)
 
 ---
 
@@ -385,10 +385,10 @@ func (c *Config) GhostK() int { ... }
 
 ### Akzeptanzkriterien M2
 
-- [ ] `config` hat **keine Projekt-Imports** (reine Stdlib)
-- [ ] `DefaultConfig().Validate()` ist nil
-- [ ] `go test ./config/...` grün
-- [ ] `GhostK()` korrekt berechnet
+- [x] `config` hat **keine Projekt-Imports** (reine Stdlib)
+- [x] `DefaultConfig().Validate()` ist nil
+- [x] `go test ./config/...` grün
+- [x] `GhostK()` korrekt berechnet
 
 ---
 
@@ -479,10 +479,10 @@ func (sg *SpatialGrid) IndividualsNear(p image.Point, radius int, out []int32) [
 
 ### Akzeptanzkriterien M3
 
-- [ ] `go test ./sim/world/...` grün
-- [ ] `ApplyRegrowth()` gibt korrekte Energie-Summe zurück
-- [ ] `SpatialGrid.IndividualsNear()` ist zero-alloc (Benchmark)
-- [ ] Kein `ebiten`-Import (CI Gate 1)
+- [x] `go test ./sim/world/...` grün
+- [x] `ApplyRegrowth()` gibt korrekte Energie-Summe zurück
+- [x] `SpatialGrid.IndividualsNear()` ist zero-alloc (Benchmark)
+- [x] Kein `ebiten`-Import (CI Gate 1)
 
 ---
 
@@ -551,10 +551,10 @@ Algorithmus (3 Iterationen):
 
 ### Akzeptanzkriterien M4
 
-- [ ] `go test ./gen/...` grün
-- [ ] `GenerateWorld()` ist deterministisch bei gleichem Seed
-- [ ] Kein globaler `math/rand` (CI Gate 2)
-- [ ] Kein `ebiten`-Import (CI Gate 1)
+- [x] `go test ./gen/...` grün
+- [x] `GenerateWorld()` ist deterministisch bei gleichem Seed
+- [x] Kein globaler `math/rand` (CI Gate 2)
+- [x] Kein `ebiten`-Import (CI Gate 1)
 
 ---
 
