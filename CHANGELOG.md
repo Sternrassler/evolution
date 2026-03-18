@@ -7,6 +7,9 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ### Added
 
+- `docs/adr/ADR-011`: Predator-Agent-Architektur entschieden — Option A (sim/predator-Package mit State-Value-Type + Tick-Funktion); Interface-Dispatch und EntityType-Switch im bestehenden Agent abgelehnt (Zero-Alloc-Garantie)
+- `docs/ROADMAP.md`: ADR-011-Link bei Issue #18 ergänzt; sim/predator-Eintrag an ADR-011-Entscheidung angepasst
+
 - `sim/sim_test.go`: 6 neue Integrationstests (fehlende Testpyramiden-Ebenen):
   - `TestNoDuplicateIDs` — Partition-Sync via `DebugIntegrity=true`
   - `TestNoWaterIndividuals` — räumliche Konsistenz: kein Individuum auf Wasser

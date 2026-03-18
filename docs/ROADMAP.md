@@ -1223,7 +1223,7 @@ func main() {
 
 | # | Titel | Abhängigkeiten |
 |---|---|---|
-| [#18](https://github.com/Sternrassler/evolution/issues/18) | ADR-011 — Predator-Agent-Architektur | — |
+| [#18](https://github.com/Sternrassler/evolution/issues/18) | ADR-011 — Predator-Agent-Architektur → [ADR-011](adr/ADR-011-predator-agent-architektur.md) ✅ | — |
 | [#3](https://github.com/Sternrassler/evolution/issues/3) | feat(entity): GeneAggression + EntityType | Blocked by #18 |
 | [#4](https://github.com/Sternrassler/evolution/issues/4) | feat(entity): EventAttack + EventFlee | Blocked by #18 |
 | [#6](https://github.com/Sternrassler/evolution/issues/6) | feat(config): PredatorConfig-Felder | Blocked by #18 |
@@ -1237,7 +1237,7 @@ func main() {
 | `sim/entity/gene.go` | `GeneAggression GeneKey = 3`, `NumGenes = 4` |
 | `sim/entity/individual.go` | Neues Feld `EntityType` (Herbivore/Predator) |
 | `sim/entity/event.go` | Neuer `EventAttack`, `EventFlee` |
-| `sim/predator/predator.go` | `Predator`-Struct, implementiert `Agent`-Interface |
+| `sim/predator/predator.go` | `State`-Value-Type + `Tick(State, ctx, out)`-Funktion (ADR-011) |
 | `config/config.go` | Neue `PredatorConfig`-Felder |
 
 ### Implementierungsdetails
