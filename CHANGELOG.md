@@ -5,6 +5,11 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Diagramm-Kurven auf gemeinsame 0–100%-Achse umgestellt: Population (% von MaxPop), Nahrung (% der Land-Tiles mit Food > 0), Wüste (% der Land-Tiles); Gitternetz bei 25/50/75%
+- `sim/snapshot.go`: `TotalFood float32` → `FoodTiles int` + `LandTiles int` (Tile-Zähler statt Summe)
+
 ### Added
 
 - `config/config.go`: `DesertifyThreshold` (0.05) und `RecoverThreshold` (0.50) — steuern dynamische Verwüstung und Erholung von Biomen
