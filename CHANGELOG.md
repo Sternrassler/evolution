@@ -5,6 +5,10 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Diagramm: Zeitfenster wächst jetzt dynamisch mit der Simulationszeit — der gesamte Verlauf seit Start wird angezeigt. Historydaten in unbegrenzt wachsendem Slice; beim Zeichnen Downsampling auf Chartbreite (gleichmäßige Indexverteilung).
+
 ### Added
 
 - `docs/REGELKREISE.md`: fachliche und mathematische Beschreibung aller Regelkreise (Energie, Nahrung, Verwüstung) inkl. Gleichgewichtsbedingungen, Wechselwirkungen und Parametertabelle

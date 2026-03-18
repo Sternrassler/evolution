@@ -20,39 +20,29 @@ const SidebarWidth = 200
 const ChartHeight = 160
 
 const (
-	maxHistory = 400
 	sidebarPad = 6
 	lineH      = 14
 	swatchSize = 10
 )
 
-// historyBuffer ist ein Ringpuffer für drei Zeitreihen.
+// historyBuffer wächst dynamisch — speichert den gesamten Simulationsverlauf.
+// Beim Zeichnen wird auf die Chartbreite downgesampelt.
 type historyBuffer struct {
-	pop    [maxHistory]float32
-	food   [maxHistory]float32
-	desert [maxHistory]float32
-	n      int
+	pop    []float32
+	food   []float32
+	desert []float32
 }
 
 func (h *historyBuffer) push(pop, food, desert float32) {
-	i := h.n % maxHistory
-	h.pop[i] = pop
-	h.food[i] = food
-	h.desert[i] = desert
-	h.n++
+	h.pop = append(h.pop, pop)
+	h.food = append(h.food, food)
+	h.desert = append(h.desert, desert)
 }
 
-func (h *historyBuffer) count() int {
-	if h.n < maxHistory {
-		return h.n
-	}
-	return maxHistory
-}
+func (h *historyBuffer) count() int { return len(h.pop) }
 
 func (h *historyBuffer) at(i int) (pop, food, desert float32) {
-	count := h.count()
-	idx := (h.n - count + i) % maxHistory
-	return h.pop[idx], h.food[idx], h.desert[idx]
+	return h.pop[i], h.food[i], h.desert[i]
 }
 
 // HUD verwaltet Seitenleiste und Verlaufsdiagramm.
@@ -213,12 +203,7 @@ func (h *HUD) drawBottomChart(screen *ebiten.Image) {
 		return
 	}
 
-	pts := count
-	plotWi := int(cw) - 2*pad
-	if pts > plotWi {
-		pts = plotWi
-	}
-	startIdx := count - pts
+	plotWi := int(cw) - 2*pad // verfügbare Pixelbreite
 
 	// Feste 0–100%-Achse
 	yOf := func(pct float32) float32 {
@@ -233,13 +218,24 @@ func (h *HUD) drawBottomChart(screen *ebiten.Image) {
 		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d%%", int(pct)), int(cx)+1, int(gy)-lineH/2)
 	}
 
-	xStep := (cw - float32(2*pad)) / float32(pts-1)
+	// Downsampling: gesamter Verlauf auf plotWi Pixel abbilden.
+	// idxOf bildet Pixel i → Datenpunkt-Index (gleichmäßig verteilt).
+	idxOf := func(pixel int) int {
+		return int(float32(pixel) / float32(plotWi-1) * float32(count-1))
+	}
 
-	for i := 1; i < pts; i++ {
-		p0, f0, d0 := h.hist.at(startIdx + i - 1)
-		p1, f1, d1 := h.hist.at(startIdx + i)
-		x0 := cx + float32(pad) + float32(i-1)*xStep
-		x1 := cx + float32(pad) + float32(i)*xStep
+	segments := plotWi
+	if count < plotWi {
+		segments = count // noch weniger Punkte als Pixel → 1:1
+	}
+
+	for i := 1; i < segments; i++ {
+		idx0 := idxOf((i - 1) * plotWi / segments)
+		idx1 := idxOf(i * plotWi / segments)
+		p0, f0, d0 := h.hist.at(idx0)
+		p1, f1, d1 := h.hist.at(idx1)
+		x0 := cx + float32(pad) + float32(i-1)*float32(plotWi)/float32(segments)
+		x1 := cx + float32(pad) + float32(i)*float32(plotWi)/float32(segments)
 
 		vector.StrokeLine(screen, x0, yOf(p0), x1, yOf(p1), 1,
 			color.RGBA{220, 200, 50, 255}, false)
