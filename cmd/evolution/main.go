@@ -35,7 +35,7 @@ func main() {
 
 	w, h := renderer.ScreenSize()
 	ebiten.SetWindowTitle("Evolution Simulation")
-	ebiten.SetWindowSize(w+ui.SidebarWidth, h)
+	ebiten.SetWindowSize(w+ui.SidebarWidth, h+ui.ChartHeight)
 	ebiten.SetTPS(20) // 20 Ticks pro Sekunde
 
 	if err := ebiten.RunGame(game); err != nil && err != ebiten.Termination {

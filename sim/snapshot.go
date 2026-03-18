@@ -19,7 +19,7 @@ type TickStats struct {
 	EnergyLostToDeath float32
 	EnergyRegrown     float32
 	TotalFood         float32 // Summe aller Food-Werte auf der Karte
-	DesertFood        float32 // Summe aller Food-Werte auf Wüsten-Tiles
+	DesertTiles       int     // Anzahl der Wüsten-Tiles nach Verwüstung/Erholung
 }
 
 // WorldSnapshot ist ein immutabler Zustand der Welt nach einem Tick.

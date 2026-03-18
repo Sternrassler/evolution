@@ -39,6 +39,10 @@ type Config struct {
 	RegrowthMeadow float32 `toml:"regrowth_meadow"` // Default: 0.002
 	RegrowthDesert float32 `toml:"regrowth_desert"` // Default: 0.0005
 
+	// Verwüstung / Erholung
+	DesertifyThreshold float32 `toml:"desertify_threshold"` // Food/FoodMax < dieser Wert → Wiese wird Wüste
+	RecoverThreshold   float32 `toml:"recover_threshold"`   // Food/FoodMax > dieser Wert → Wüste wird Wiese
+
 	// Gen-Definitionen
 	GeneDefinitions []GeneDef `toml:"gene_definitions"`
 }
@@ -81,6 +85,9 @@ func DefaultConfig() Config {
 
 		RegrowthMeadow: 0.002,
 		RegrowthDesert: 0.0005,
+
+		DesertifyThreshold: 0.05,
+		RecoverThreshold:   0.50,
 
 		GeneDefinitions: []GeneDef{
 			{Key: entity.GeneSpeed, Min: 0.5, Max: 3.0, MutationRate: 0.1, MutationStep: 0.1},

@@ -85,6 +85,38 @@ func (g *Grid) ApplyRegrowth(meadowRate, desertRate float32) float32 {
 	return total
 }
 
+// ApplyDesertification ändert Biome basierend auf dem Nahrungsstand.
+// Wiesen mit Food/FoodMax < desertifyThreshold werden zu Wüste.
+// Wüsten mit Food/FoodMax > recoverThreshold werden zu Wiese.
+// Gibt die Anzahl der Wüsten-Tiles nach der Änderung zurück.
+func (g *Grid) ApplyDesertification(desertifyThreshold, recoverThreshold float32) int {
+	for i := range g.Tiles {
+		t := &g.Tiles[i]
+		if t.FoodMax <= 0 {
+			continue
+		}
+		ratio := t.Food / t.FoodMax
+		switch t.Biome {
+		case BiomeMeadow:
+			if ratio < desertifyThreshold {
+				t.Biome = BiomeDesert
+			}
+		case BiomeDesert:
+			if ratio > recoverThreshold {
+				t.Biome = BiomeMeadow
+			}
+		}
+	}
+	// Wüsten-Tiles zählen
+	var count int
+	for i := range g.Tiles {
+		if g.Tiles[i].Biome == BiomeDesert {
+			count++
+		}
+	}
+	return count
+}
+
 // WorldContext ist die read-only Weltansicht für Phase-1-Agenten.
 // Wird von partition und testworld implementiert.
 // RandSource ist entity.RandSource (kein extra Import nötig, da entity bereits importiert).

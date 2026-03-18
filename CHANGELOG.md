@@ -7,6 +7,19 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ### Added
 
+- `config/config.go`: `DesertifyThreshold` (0.05) und `RecoverThreshold` (0.50) — steuern dynamische Verwüstung und Erholung von Biomen
+- `sim/world/world.go`: `ApplyDesertification(desertifyThreshold, recoverThreshold float32) int` — wandelt Wiesen bei Nahrungsmangel in Wüste um und Wüsten bei ausreichend Nahrung zurück; gibt Anzahl der Wüsten-Tiles zurück
+- `sim/sim.go`: `Step()` ruft nach `ApplyRegrowth` automatisch `ApplyDesertification` auf
+- `ui/hud.go`: Verlaufsdiagramm unterhalb der Karte (`ChartHeight = 160`); dritte Kurve zeigt Wüsten-Tile-Anzahl (orange-braun) statt Wüstennahrung; Parameter-Panel zeigt Verwüstungs- und Erholungsschwellen
+- `ui/hud.go`: `ChartHeight`-Konstante (exportiert) für Layout-Berechnungen in `game.go` und `main.go`
+
+### Changed
+
+- `sim/snapshot.go`: `TickStats.DesertFood float32` ersetzt durch `DesertTiles int`
+- `ui/hud.go`: `NewHUD(mapW int)` → `NewHUD(mapW, mapH int)`; Chart aus Seitenleiste entfernt und als eigenständiger Block unterhalb der Karte neu implementiert
+- `ui/game.go`: `Layout()` gibt `h + ChartHeight` zurück; `NewHUD` erhält `mapH`
+- `cmd/evolution/main.go`: `SetWindowSize` berücksichtigt `ChartHeight`
+
 - `ui/hud.go`: Parameter-Panel unten links — zeigt BaseEnergyCost, Repro-Schwelle/-Reserve, Regrowth-Raten und Max-Population
 - `config/config.go`: `RegrowthMeadow` (0.002) und `RegrowthDesert` (0.0005) als konfigurierbare Felder; `ApplyRegrowth` verwendet diese Werte statt interner Konstanten
 

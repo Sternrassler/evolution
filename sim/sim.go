@@ -180,6 +180,9 @@ func (s *Simulation) Step() {
 	// 6. Regrowth (nach Phase 2)
 	stats.EnergyRegrown = s.grid.ApplyRegrowth(cfg.RegrowthMeadow, cfg.RegrowthDesert)
 
+	// Verwüstung / Erholung anwenden
+	s.grid.ApplyDesertification(cfg.DesertifyThreshold, cfg.RecoverThreshold)
+
 	// 7. Observer
 	s.observer.OnTick(s.tick, stats)
 
@@ -487,12 +490,14 @@ func (s *Simulation) totalPopulation() int {
 func (s *Simulation) buildSnapshot(stats TickStats) WorldSnapshot {
 	inds := s.allIndividuals()
 	sort.Slice(inds, func(i, j int) bool { return inds[i].ID < inds[j].ID })
+	var desertCount int
 	for _, t := range s.grid.Tiles {
 		stats.TotalFood += t.Food
 		if t.Biome == world.BiomeDesert {
-			stats.DesertFood += t.Food
+			desertCount++
 		}
 	}
+	stats.DesertTiles = desertCount
 	return WorldSnapshot{
 		Tiles:       s.grid.Tiles,
 		Individuals: inds,
