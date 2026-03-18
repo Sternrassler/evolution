@@ -121,8 +121,8 @@ func drawParamsPanel(screen *ebiten.Image, cfg config.Config) {
 		fmt.Sprintf("Energie-Kosten:  %.2f/Tick", cfg.BaseEnergyCost),
 		fmt.Sprintf("Repro-Schwelle:  %.0f E", cfg.ReproductionThreshold),
 		fmt.Sprintf("Repro-Reserve:   %.0f E", cfg.ReproductionReserve),
-		fmt.Sprintf("Regrowth Wiese:  %.4f", cfg.RegrowthMeadow),
-		fmt.Sprintf("Regrowth Wüste:  %.4f", cfg.RegrowthDesert),
+		fmt.Sprintf("Nachwachs Wiese: %.4f", cfg.RegrowthMeadow),
+		fmt.Sprintf("Nachwachs Wüste: %.4f", cfg.RegrowthDesert),
 		fmt.Sprintf("Max-Population:  %d", cfg.MaxPopulation),
 	}
 	for _, line := range lines {
