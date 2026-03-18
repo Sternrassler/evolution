@@ -7,6 +7,11 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ### Added
 
+- `docs/adr/ADR-010`: ViewMode — umschaltbare Kartenansichten statt Zoom-Dispatch; ADR-009 mit Nachtrag versehen
+- `docs/GLOSSAR.md`: neue Einträge `ViewMode` und `Verwüstung`; `TickStats`-Eintrag um `AvgFoodPct`, `DesertTiles`, `LandTiles` erweitert
+- `docs/ROADMAP.md`: Status auf MVP vollständig (M0–M10 ✅) aktualisiert; Post-MVP-Erweiterungen dokumentiert
+- `docs/ARCHITECTURE.md`: `TickStats`-Klassendiagramm, `Game`-Struct (Sektion 7) und `render`-Package-Beschreibung aktualisiert
+
 - Vier Kartenansichten, umschaltbar per Taste 1–4:
   - `1` Biom: Geländetyp + Nahrungsfüllstand mit Individuen-Punkten (Standard)
   - `2` Dichte: Populationsdichte pro Tile als Heatmap (schwarz → rot → orange → gelb)

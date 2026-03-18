@@ -1,7 +1,7 @@
 # Evolution Simulation — Implementierungs-Roadmap
 
 > Basis: [CONCEPT.md](./CONCEPT.md) + [ARCHITECTURE.md](./ARCHITECTURE.md)
-> Stand: 2026-03-17 · Status: 0% implementiert, reine Planung
+> Stand: 2026-03-18 · Status: MVP vollständig (M0–M10 ✅), Post-MVP Erweiterungen teilweise umgesetzt
 
 ---
 
@@ -1093,7 +1093,7 @@ func (h *InputHandler) Process(g *Game) {
 
 ### Akzeptanzkriterien M9
 
-- [ ] Fenster öffnet sich und zeigt simulierte Welt
+- [x] Fenster öffnet sich und zeigt simulierte Welt
 - [x] HUD zeigt korrekte Tick- und Populationszahlen
 - [x] Pause/Weiter funktioniert
 - [x] Next-Step sichtbar wenn paused
@@ -1159,11 +1159,58 @@ func main() {
 ### Akzeptanzkriterien M10 — MVP vollständig
 
 - [x] `go build ./cmd/evolution/` kompiliert ohne Fehler
-- [ ] `./evolution` startet, zeigt bunte Welt
-- [ ] Evolution sichtbar: Farbveränderung der Population über Zeit
-- [ ] Alle 5 CI-Gates sind grün
-- [ ] `go test -race ./...` grün
-- [ ] Population stirbt nicht sofort aus (Smoke-Test: 1000 Ticks, Population > 0)
+- [x] `./evolution` startet, zeigt bunte Welt
+- [x] Evolution sichtbar: Farbveränderung der Population über Zeit
+- [x] Alle 5 CI-Gates sind grün
+- [x] `go test -race ./...` grün
+- [x] Population stirbt nicht sofort aus (Smoke-Test: 1000 Ticks, Population > 0)
+
+---
+
+## Post-MVP Erweiterungen — außerplanmäßig umgesetzt
+
+> Diese Features wurden nach M10 (MVP) implementiert, sind aber kein Bestandteil
+> der ursprünglichen Stufe-1-Roadmap. Sie gehören thematisch zu Stufe 2/3.
+
+### Dynamische Verwüstung (`sim/world`, `config`, `sim`)
+
+- `ApplyDesertification(desertifyThreshold, recoverThreshold float32) int` in `sim/world/world.go`
+- Wiesen-Tiles mit `Food/FoodMax < DesertifyThreshold` werden zu Wüste
+- Wüsten-Tiles mit `Food/FoodMax > RecoverThreshold` erholen sich zurück zu Wiese
+- Hysterese durch zwei verschiedene Schwellwerte verhindert Flackern
+- Neue Config-Felder: `DesertifyThreshold = 0.05`, `RecoverThreshold = 0.50`
+- `sim.Step()` ruft `ApplyDesertification` nach `ApplyRegrowth` auf
+
+### Konfigurierbare Regrowth-Raten (`config`)
+
+- `RegrowthMeadow = 0.002`, `RegrowthDesert = 0.0005` als eigene Config-Felder
+- Nahrung wächst bewusst wesentlich langsamer als eine mittelgroße Population frisst
+
+### Verlaufsdiagramm (`ui/hud.go`)
+
+- Diagramm unterhalb der Karte (`ChartHeight = 160 px`)
+- Zeigt gesamten Simulationsverlauf seit Start (dynamisch wachsender Slice, Downsampling auf Chartbreite)
+- Drei Kurven auf gemeinsamer 0–100%-Achse: Population (% von MaxPop), Nahrung (Ø Füllstand), Wüste (% der Land-Tiles)
+- Gitternetz bei 25 / 50 / 75 %
+
+### Rechte Seitenleiste (`ui/hud.go`, `ui/game.go`)
+
+- `SidebarWidth = 200 px` neben der Karte
+- Statistik-Panel, Ansichts-Schalter, Legende, Parameter-Panel
+
+### Vier Ansichtsmodi (`render/viewmode.go`, `render/renderer.go`, `ui/input.go`)
+
+- Taste **1** Biom — Geländetyp + Nahrungsfüllstand + Individuen-Punkte
+- Taste **2** Dichte — Populationsdichte pro Tile als Heatmap
+- Taste **3** Genotyp — Ø Gene pro Tile als RGB (R=Speed, G=Sight, B=Effizienz)
+- Taste **4** Nahrung — Nahrungsfüllstand biomunabhängig
+- Seitenleiste zeigt aktiven Modus hervorgehoben, Legende passt sich an (ADR-010)
+
+### Bugfixes
+
+- Race Condition auf `s.rng`: `lockedRandSource` (Mutex-Wrapper) für Phase-1-Goroutinen
+- `BaseEnergyCost` von 3.0 auf 0.5 korrigiert (Population kollabierte bei zu hohen Kosten)
+- Energie-Drain fehlte: `applyPhase2` schreibt nun `BaseEnergyCost + speedGene×0.1` zurück
 
 ---
 

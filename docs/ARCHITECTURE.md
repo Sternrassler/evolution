@@ -102,7 +102,7 @@ graph LR
 | `sim/partition` | SoA-Hot-Arrays, Ghost-Row-Logik, Goroutine-Worker (package-intern) |
 | `sim/world` | `Tile`, Spatial-Grid, Nahrungsregrowth |
 | `sim/entity` | `Individual` (AoS), `GeneDef`, `GeneKey`-Konstanten, `Event`-Typen, `EventBuffer` — reines Daten-Leaf-Package |
-| `render` | Pixel-Buffer, `WritePixels`-Pipeline, Zoom via DrawImage |
+| `render` | Pixel-Buffer, `WritePixels`-Pipeline, `ViewMode`-Dispatch (Biom/Dichte/Genotyp/Nahrung) |
 | `ui` | Ebiten `Game`-Interface, Input, HUD, Statistik-Panel, Detailansicht |
 | `gen` | `GenerateWorld()` — pure function, Cellular-Automaton-Generierung |
 | `testworld` | Leichtgewichtige echte `WorldContext`-Implementierung mit Builder-Pattern (keine Mocks) |
@@ -161,6 +161,9 @@ classDiagram
         +EnergyConsumed float32
         +EnergyLostToDeath float32
         +EnergyRegrown float32
+        +AvgFoodPct float32
+        +DesertTiles int
+        +LandTiles int
     }
 
     class Agent {
@@ -439,28 +442,40 @@ Die Ebiten-spezifische Integration ist eine Architektur-Entscheidung:
 
 ```go
 type Game struct {
-    sim      *sim.Simulation
-    exporter *sim.SnapshotExporter
-    renderer *render.Renderer
-    lastTick uint64
+    simulation *sim.Simulation
+    exporter   *sim.SnapshotExporter
+    renderer   *render.Renderer
+    hud        *HUD
+    input      *InputHandler
+    lastTick   uint64
+    cfg        config.Config
+    viewMode   render.ViewMode  // aktive Kartenansicht (1–4)
 }
 
 func (g *Game) Update() error {
-    g.sim.Step() // genau ein Sim-Tick pro Update()
+    g.input.Process(g)  // Space=Pause, →=Step, 1–4=Ansicht, Esc=Beenden
+    if !g.input.Paused {
+        g.simulation.Step()
+    } else if g.input.StepOnce {
+        g.simulation.Step()
+        g.input.StepOnce = false
+    }
     return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
     snap := g.exporter.Load() // atomic.Pointer — lock-frei
-    if snap.Tick != g.lastTick {
-        g.renderer.RenderToBuffer(snap) // Pixel-Buffer aktualisieren
+    if snap != nil && snap.Tick != g.lastTick {
+        g.renderer.RenderToBuffer(snap, g.viewMode) // Pixel-Buffer aktualisieren
         g.lastTick = snap.Tick
     }
-    g.renderer.DrawBuffer(screen) // WritePixels — immer
+    g.renderer.DrawBuffer(screen)            // WritePixels — immer
+    g.hud.Draw(screen, snap, g.cfg, g.viewMode)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-    return WorldWidth * TileSize, WorldHeight * TileSize
+    w, h := g.renderer.ScreenSize()
+    return w + SidebarWidth, h + ChartHeight
 }
 ```
 

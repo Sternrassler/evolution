@@ -147,10 +147,53 @@ nach Phase 2 aufgerufen. Dient als Test-Seam für Statistik-Assertions
 
 ## TickStats
 
-Wert-Struct mit aggregierten Statistiken eines Ticks: `Population int`,
-`Births int`, `Deaths int`, `EnergyConsumed float32`, `EnergyLostToDeath float32`,
-`EnergyRegrown float32`. Teil von `WorldSnapshot`. Basis für die
-Energieerhaltungs-Invariante: `ΔEnergie_Individuen + ΔEnergie_Tiles + Energie_Tote = Regrowth`.
+Wert-Struct mit aggregierten Statistiken eines Ticks. Teil von `WorldSnapshot`.
+
+| Feld | Typ | Bedeutung |
+|---|---|---|
+| `Population` | `int` | Lebende Individuen am Tick-Ende |
+| `Births` | `int` | Geburten in diesem Tick |
+| `Deaths` | `int` | Tode in diesem Tick |
+| `EnergyConsumed` | `float32` | Gesamte Energie aller Fressereien |
+| `EnergyLostToDeath` | `float32` | Energie, die beim Tod verloren geht |
+| `EnergyRegrown` | `float32` | Durch Nachwachs neu entstandene Energie |
+| `AvgFoodPct` | `float32` | Ø `Food/FoodMax × 100` über alle Land-Tiles |
+| `DesertTiles` | `int` | Anzahl Wüsten-Tiles nach diesem Tick |
+| `LandTiles` | `int` | Gesamtzahl Land-Tiles (Wiese + Wüste) |
+
+Basis für die Energieerhaltungs-Invariante: `ΔEnergie_Individuen + ΔEnergie_Tiles + Energie_Tote = Regrowth`.
+
+---
+
+## Verwüstung (Desertification)
+
+Dynamischer Biom-Übergang, der durch Nahrungsmangel ausgelöst wird.
+Implementiert in `sim/world.ApplyDesertification(desertifyThreshold, recoverThreshold float32)`.
+
+- **Verwüstung:** Wiesen-Tile mit `Food/FoodMax < DesertifyThreshold` → wird zu Wüste
+- **Erholung:** Wüsten-Tile mit `Food/FoodMax > RecoverThreshold` → kehrt zu Wiese zurück
+- **Hysterese:** zwei verschiedene Schwellwerte verhindern Flackern zwischen den Biomen
+- Wird in `sim.Step()` nach `ApplyRegrowth()` aufgerufen
+
+Standardwerte: `DesertifyThreshold = 0.05`, `RecoverThreshold = 0.50`.
+Bildet zusammen mit Regrowth und Energiekreislauf den **Nahrungsregelkreis** (→ `REGELKREISE.md`).
+
+---
+
+## ViewMode
+
+Enum-Typ in `render/viewmode.go`, der die aktive Kartenansicht beschreibt.
+Wird von `render.Renderer.RenderToBuffer(snap, mode)` ausgewertet.
+Taste **1–4** in `ui/input.go` schaltet den Modus in `Game.viewMode`.
+
+| Konstante | Taste | Darstellung |
+|---|---|---|
+| `ViewBiom` | 1 | Geländetyp + Nahrungsfüllstand + Individuen-Punkte |
+| `ViewDichte` | 2 | Populationsdichte pro Tile als Heatmap |
+| `ViewGenotyp` | 3 | Ø Gene aller Individuen pro Tile als RGB |
+| `ViewNahrung` | 4 | Nahrungsfüllstand biomunabhängig |
+
+`ViewMode` hat keinen `//go:build`-Tag — headless-kompatibel, importierbar ohne Ebiten.
 
 ---
 
