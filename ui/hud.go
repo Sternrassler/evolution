@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
 	"github.com/Sternrassler/evolution/config"
+	"github.com/Sternrassler/evolution/render"
 	"github.com/Sternrassler/evolution/sim"
 	"github.com/Sternrassler/evolution/sim/entity"
 )
@@ -54,7 +55,7 @@ type HUD struct {
 func NewHUD(mapW, mapH int) *HUD { return &HUD{mapW: mapW, mapH: mapH} }
 
 // Draw zeichnet Seitenleiste und Diagramm.
-func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Config) {
+func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Config, viewMode render.ViewMode) {
 	if snap == nil {
 		return
 	}
@@ -73,11 +74,11 @@ func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Con
 		float32(snap.Stats.DesertTiles)/float32(land)*100,
 	)
 
-	h.drawSidebar(screen, snap, cfg)
+	h.drawSidebar(screen, snap, cfg, viewMode)
 	h.drawBottomChart(screen)
 }
 
-func (h *HUD) drawSidebar(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Config) {
+func (h *HUD) drawSidebar(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Config, viewMode render.ViewMode) {
 	sx := float32(h.mapW)
 	sh := float32(screen.Bounds().Dy())
 
@@ -89,7 +90,9 @@ func (h *HUD) drawSidebar(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg con
 
 	ty = h.drawStats(screen, tx, ty, snap)
 	ty = drawSep(screen, h.mapW, ty)
-	ty = drawLegendSection(screen, tx, ty)
+	ty = drawViewSwitcher(screen, tx, ty, viewMode)
+	ty = drawSep(screen, h.mapW, ty)
+	ty = drawLegendSection(screen, tx, ty, viewMode)
 	ty = drawSep(screen, h.mapW, ty)
 	drawParamsSection(screen, tx, ty, cfg)
 }
@@ -111,35 +114,86 @@ func (h *HUD) drawStats(screen *ebiten.Image, tx, ty int, snap *sim.WorldSnapsho
 	return ty
 }
 
-func drawLegendSection(screen *ebiten.Image, tx, ty int) int {
-	ebitenutil.DebugPrintAt(screen, "Gelände:", tx, ty)
+func drawViewSwitcher(screen *ebiten.Image, tx, ty int, active render.ViewMode) int {
+	ebitenutil.DebugPrintAt(screen, "Ansicht (1–4):", tx, ty)
 	ty += lineH
-	for _, b := range []struct {
-		label string
-		c     color.RGBA
-	}{
-		{"Wiese", color.RGBA{40, 160, 30, 255}},
-		{"Wüste", color.RGBA{200, 180, 100, 255}},
-		{"Wasser", color.RGBA{30, 80, 160, 255}},
-	} {
-		vector.FillRect(screen, float32(tx), float32(ty), swatchSize, swatchSize, b.c, false)
-		ebitenutil.DebugPrintAt(screen, b.label, tx+swatchSize+4, ty)
+	for _, vm := range []render.ViewMode{render.ViewBiom, render.ViewDichte, render.ViewGenotyp, render.ViewNahrung} {
+		label := fmt.Sprintf("%d %s", int(vm), vm.ViewName())
+		if vm == active {
+			vector.FillRect(screen, float32(tx-2), float32(ty-1), float32(SidebarWidth-2*sidebarPad), float32(lineH), color.RGBA{50, 80, 50, 255}, false)
+		}
+		ebitenutil.DebugPrintAt(screen, label, tx, ty)
 		ty += lineH
 	}
-	ty += 4
-	ebitenutil.DebugPrintAt(screen, "Individuen (RGB=Gen):", tx, ty)
+	return ty
+}
+
+func drawLegendSection(screen *ebiten.Image, tx, ty int, viewMode render.ViewMode) int {
+	ebitenutil.DebugPrintAt(screen, "Legende:", tx, ty)
 	ty += lineH
-	for _, g := range []struct {
-		label string
-		c     color.RGBA
-	}{
-		{"Rot   = Speed", color.RGBA{220, 60, 60, 255}},
-		{"Grün  = Sight", color.RGBA{60, 220, 60, 255}},
-		{"Blau  = Effiz.", color.RGBA{60, 60, 220, 255}},
-	} {
-		vector.FillRect(screen, float32(tx), float32(ty), swatchSize, swatchSize, g.c, false)
-		ebitenutil.DebugPrintAt(screen, g.label, tx+swatchSize+4, ty)
+	switch viewMode {
+	case render.ViewBiom:
+		for _, b := range []struct {
+			label string
+			c     color.RGBA
+		}{
+			{"Wiese", color.RGBA{40, 160, 30, 255}},
+			{"Wüste", color.RGBA{200, 180, 100, 255}},
+			{"Wasser", color.RGBA{30, 80, 160, 255}},
+		} {
+			vector.FillRect(screen, float32(tx), float32(ty), swatchSize, swatchSize, b.c, false)
+			ebitenutil.DebugPrintAt(screen, b.label, tx+swatchSize+4, ty)
+			ty += lineH
+		}
+		ty += 4
+		ebitenutil.DebugPrintAt(screen, "Punkt = Individuum", tx, ty)
 		ty += lineH
+	case render.ViewDichte:
+		ebitenutil.DebugPrintAt(screen, "Heatmap:", tx, ty)
+		ty += lineH
+		for _, b := range []struct {
+			label string
+			c     color.RGBA
+		}{
+			{"wenig", color.RGBA{10, 10, 15, 255}},
+			{"mittel", color.RGBA{200, 50, 0, 255}},
+			{"viel", color.RGBA{255, 200, 50, 255}},
+		} {
+			vector.FillRect(screen, float32(tx), float32(ty), swatchSize, swatchSize, b.c, false)
+			ebitenutil.DebugPrintAt(screen, b.label, tx+swatchSize+4, ty)
+			ty += lineH
+		}
+	case render.ViewGenotyp:
+		for _, g := range []struct {
+			label string
+			c     color.RGBA
+		}{
+			{"Rot   = Speed", color.RGBA{220, 60, 60, 255}},
+			{"Grün  = Sight", color.RGBA{60, 220, 60, 255}},
+			{"Blau  = Effiz.", color.RGBA{60, 60, 220, 255}},
+		} {
+			vector.FillRect(screen, float32(tx), float32(ty), swatchSize, swatchSize, g.c, false)
+			ebitenutil.DebugPrintAt(screen, g.label, tx+swatchSize+4, ty)
+			ty += lineH
+		}
+		ty += 4
+		ebitenutil.DebugPrintAt(screen, "Ø Gene pro Tile", tx, ty)
+		ty += lineH
+	case render.ViewNahrung:
+		ebitenutil.DebugPrintAt(screen, "Füllstand:", tx, ty)
+		ty += lineH
+		for _, b := range []struct {
+			label string
+			c     color.RGBA
+		}{
+			{"leer", color.RGBA{20, 20, 20, 255}},
+			{"voll", color.RGBA{50, 220, 40, 255}},
+			{"Wasser", color.RGBA{30, 80, 160, 255}},
+		} {
+			vector.FillRect(screen, float32(tx), float32(ty), swatchSize, swatchSize, b.c, false)
+			ebitenutil.DebugPrintAt(screen, b.label, tx+swatchSize+4, ty)
+			ty += lineH
+		}
 	}
 	return ty
 }

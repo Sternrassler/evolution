@@ -3,6 +3,8 @@ package ui
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+
+	"github.com/Sternrassler/evolution/render"
 )
 
 // InputHandler verarbeitet Tastatureingaben.
@@ -24,6 +26,12 @@ func (h *InputHandler) Process(g *Game) error {
 	// Escape → Beenden
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return ebiten.Termination
+	}
+	// 1–4 → Ansicht wechseln
+	for i, key := range []ebiten.Key{ebiten.Key1, ebiten.Key2, ebiten.Key3, ebiten.Key4} {
+		if inpututil.IsKeyJustPressed(key) {
+			g.viewMode = render.ViewMode(i + 1)
+		}
 	}
 	return nil
 }

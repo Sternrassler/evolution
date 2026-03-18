@@ -5,6 +5,19 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Vier Kartenansichten, umschaltbar per Taste 1–4:
+  - `1` Biom: Geländetyp + Nahrungsfüllstand mit Individuen-Punkten (Standard)
+  - `2` Dichte: Populationsdichte pro Tile als Heatmap (schwarz → rot → orange → gelb)
+  - `3` Genotyp: Durchschnittsgene aller Individuen pro Tile als RGB (R=Speed, G=Sight, B=Effizienz)
+  - `4` Nahrung: Nahrungsfüllstand biomunabhängig (grau → grün)
+- `render/viewmode.go`: `ViewMode`-Typ mit `ViewBiom`/`ViewDichte`/`ViewGenotyp`/`ViewNahrung` und `ViewName()` (kein Ebiten-Build-Tag, headless-kompatibel)
+- `render/renderer.go`: `RenderToBuffer(snap, mode ViewMode)` — dispatcht auf `renderTiles+renderIndividuals`, `renderDichte`, `renderGenotyp`, `renderNahrung`; pre-allokierte Hilfs-Buffer (`densityBuf`, `geneSumBuf`, `geneCountBuf`) in Renderer-Struct
+- `render/color.go`: `DensityColor(count, maxCount)` (Heatmap schwarz→gelb), `FoodOnlyColor(biome, food, foodMax)` (biomunabhängiger Füllstand)
+- `ui/hud.go`: Ansichts-Schalter in Seitenleiste zeigt aktive Ansicht hervorgehoben; Legende passt sich an aktive Ansicht an
+- `ui/input.go`: Tasten 1–4 schalten `g.viewMode`
+
 ### Changed
 
 - Diagramm: Zeitfenster wächst jetzt dynamisch mit der Simulationszeit — der gesamte Verlauf seit Start wird angezeigt. Historydaten in unbegrenzt wachsendem Slice; beim Zeichnen Downsampling auf Chartbreite (gleichmäßige Indexverteilung).
