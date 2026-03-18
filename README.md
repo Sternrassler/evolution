@@ -4,6 +4,18 @@ Eine biologisch inspirierte Echtzeit-Simulation, die grundlegende Prinzipien von
 
 ---
 
+## Screenshots
+
+| Biom | Dichte |
+|---|---|
+| ![Biom-Ansicht](docs/screenshots/ansicht-biom.png) | ![Dichte-Ansicht](docs/screenshots/ansicht-dichte.png) |
+
+| Genotyp | Nahrung |
+|---|---|
+| ![Genotyp-Ansicht](docs/screenshots/ansicht-genotyp.png) | ![Nahrung-Ansicht](docs/screenshots/ansicht-nahrung.png) |
+
+---
+
 ## Was passiert auf dem Bildschirm?
 
 Die Welt besteht aus Wiesen, Wüsten und Wasser. Nahrung wächst langsam nach — wesentlich langsamer als eine gesunde Population frisst. Wo dauerhaft Nahrungsmangel herrscht, verwüstet das Gelände. Erholt sich die Nahrung, kehrt die Wiese zurück.
