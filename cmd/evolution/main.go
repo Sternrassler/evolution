@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"math/rand"
+	"os"
 
+	"github.com/BurntSushi/toml"
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/Sternrassler/evolution/config"
@@ -19,6 +21,11 @@ func (rs *randSource) Intn(n int) int   { return rs.r.Intn(n) }
 
 func main() {
 	cfg := config.DefaultConfig()
+	if _, statErr := os.Stat("evolution.toml"); statErr == nil {
+		if _, err := toml.DecodeFile("evolution.toml", &cfg); err != nil {
+			log.Fatal("Config-Fehler (evolution.toml):", err)
+		}
+	}
 	if err := cfg.Validate(); err != nil {
 		log.Fatal("Ungültige Config:", err)
 	}
