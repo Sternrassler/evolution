@@ -24,11 +24,12 @@ type Game struct {
 
 // NewGame erstellt ein neues Game.
 func NewGame(simulation *sim.Simulation, exporter *sim.SnapshotExporter, renderer *render.Renderer, cfg config.Config) *Game {
+	mapW, _ := renderer.ScreenSize()
 	return &Game{
 		simulation: simulation,
 		exporter:   exporter,
 		renderer:   renderer,
-		hud:        NewHUD(),
+		hud:        NewHUD(mapW),
 		input:      &InputHandler{},
 		cfg:        cfg,
 	}
@@ -62,7 +63,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 }
 
-// Layout gibt die logische Fenstergröße zurück.
+// Layout gibt die logische Fenstergröße zurück (Karte + Seitenleiste).
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return g.renderer.ScreenSize()
+	w, h := g.renderer.ScreenSize()
+	return w + SidebarWidth, h
 }

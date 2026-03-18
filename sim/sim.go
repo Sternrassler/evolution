@@ -486,8 +486,13 @@ func (s *Simulation) totalPopulation() int {
 // buildSnapshot erstellt einen WorldSnapshot aus dem aktuellen Zustand.
 func (s *Simulation) buildSnapshot(stats TickStats) WorldSnapshot {
 	inds := s.allIndividuals()
-	// Sortiere nach ID für Determinismus
 	sort.Slice(inds, func(i, j int) bool { return inds[i].ID < inds[j].ID })
+	for _, t := range s.grid.Tiles {
+		stats.TotalFood += t.Food
+		if t.Biome == world.BiomeDesert {
+			stats.DesertFood += t.Food
+		}
+	}
 	return WorldSnapshot{
 		Tiles:       s.grid.Tiles,
 		Individuals: inds,
