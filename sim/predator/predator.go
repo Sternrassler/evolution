@@ -58,8 +58,13 @@ func Tick(s State, ctx world.WorldContext, out *entity.EventBuffer) {
 
 	// Beute suchen — IndividualsNear gibt SoA-Indizes zurück (zero-alloc via ctx-internen Buffer)
 	nearby := ctx.IndividualsNear(pos, sightRadius)
-	if len(nearby) > 0 {
-		// Zufällige Beute aus Nachbarschaft
+
+	// Jagdversuch: GeneAggression bestimmt Erfolgswahrscheinlichkeit.
+	// Hohe Aggression → häufigere Kills; niedrige Aggression → Wanderer, der verhungert.
+	// Evolutionsdruck: nur Räuber mit ausreichend hoher Aggression überleben.
+	// Bei Misserfolg oder keiner Beute in Sichtweite: Random Walk.
+	if len(nearby) > 0 && rng.Float64() < float64(aggressionGene) {
+		// Jagd erfolgreich: Angriff auf zufällige Beute in der Nähe.
 		// Value = float32(target SoA-Index): Phase 2 löst Energie-Transfer auf (Issue #7)
 		targetIdx := nearby[rng.Intn(len(nearby))]
 		out.Append(entity.Event{
@@ -69,7 +74,7 @@ func Tick(s State, ctx world.WorldContext, out *entity.EventBuffer) {
 			Value:     float32(targetIdx),
 		})
 	} else {
-		// Kein Ziel → Random Walk
+		// Keine Beute in Sichtweite oder Jagd gescheitert → Random Walk
 		maxStep := max(1, int(speedGene+0.5))
 		dx := rng.Intn(2*maxStep+1) - maxStep
 		dy := rng.Intn(2*maxStep+1) - maxStep

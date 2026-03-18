@@ -7,6 +7,8 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ### Fixed
 
+- `sim/predator/predator.go`: Kill-Wahrscheinlichkeit = `GeneAggression` eingeführt — Räuber töten Beute nicht mehr deterministisch jeden Tick; bei Jagdmisserfolg oder keiner Beute in Sichtweite wird Random Walk ausgeführt (behebt auch Stagnation wenn nur Räuber in der Nähe). Lotka-Volterra-Gleichgewicht: H*≈133, P*≈8
+- `config/config.go`: `Predator.EnergyPerKill` 40→8, `Predator.ReproThreshold` 120→360 — Räuber-Population wächst deutlich langsamer; verhindert Overshoot und anschließenden Zusammenbruch nach 300–400 Ticks
 - `sim/sim.go`: `applyPhase2` — Räuber greifen keine anderen Räuber (inkl. sich selbst) an; `EntityType`-Check verhindert Selbst- und Räuber-auf-Räuber-Angriffe die zuvor zur sofortigen Dezimierung der Räuber-Population führten
 
 ### Added
