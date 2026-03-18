@@ -176,6 +176,7 @@ func drawLegendSection(screen *ebiten.Image, tx, ty int, viewMode render.ViewMod
 			{"Rot   = Speed", color.RGBA{220, 60, 60, 255}},
 			{"Grün  = Sight", color.RGBA{60, 220, 60, 255}},
 			{"Blau  = Effiz.", color.RGBA{60, 60, 220, 255}},
+			{"Weiß  = Räuber", color.RGBA{255, 255, 255, 255}},
 		} {
 			vector.FillRect(screen, float32(tx), float32(ty), swatchSize, swatchSize, g.c, false)
 			ebitenutil.DebugPrintAt(screen, g.label, tx+swatchSize+4, ty)
