@@ -172,64 +172,7 @@ weniger Nahrung verfügbar → Population sinkt → weniger Fraß → Erholung.
 
 ---
 
-## 4. Wechselwirkungen und Gesamtsystem
-
-```
-        ┌─────────────────────────────────────────┐
-        │              POPULATION                  │
-        │   (+) Reproduktion wenn E ≥ Schwelle     │
-        │   (−) Tod wenn E ≤ 0                     │
-        └──────────┬──────────────────▲────────────┘
-                   │ Fraß             │ Energie
-                   ▼                  │
-        ┌──────────────────┐   ┌──────────────┐
-        │    NAHRUNG       │   │   ENERGIE    │
-        │ (+) Nachwuchs    │──▶│ (+) Fraß     │
-        │ (−) Fraß         │   │ (−) Kosten   │
-        └──────────┬───────┘   └──────────────┘
-                   │ Verarmung
-                   ▼
-        ┌──────────────────┐
-        │   VERWÜSTUNG     │
-        │ (+) bei Food<5%  │
-        │ (−) bei Food>50% │
-        └──────────┬───────┘
-                   │ senkt Nachwuchsrate (×0.25)
-                   └──────────────────────────────▶ NAHRUNG (−)
-```
-
-### Stabilitätsbedingung
-
-Das System ist stabil wenn die Population so groß ist, dass:
-
-```
-Fraß_gesamt ≤ Nachwuchs_gesamt
-N × 2.0 ≤ LandTiles × RegrowthMeadow × FoodMax
-N ≤ LandTiles × 0.002 × 10 / 2.0  =  LandTiles × 0.01
-```
-
-Bei ~32.000 Land-Tiles: **N_stabil ≤ 320 Individuen** (rein auf Wiesennachwuchs).
-
-In der Praxis liegt das beobachtete Gleichgewicht höher, weil:
-- Nicht alle Individuen gleichzeitig auf befüllten Tiles stehen
-- Wüsten-Tiles tragen ebenfalls (langsam) zur Nahrung bei
-- Tote Individuen sofort als Selektionsdruck wirken
-
-### Evolutionsdruck
-
-| Gen | Selektionsvorteil | Selektionsnachteil |
-|---|---|---|
-| GeneSpeed (hoch) | Erreicht Nahrung schneller | Höhere Energiekosten |
-| GeneSight (hoch) | Findet Nahrung in größerem Radius | Kein direkter Nachteil |
-| GeneEfficiency (hoch) | Mehr Energie pro Bissen | Kein direkter Nachteil |
-
-Bei Nahrungsknappheit dominiert **GeneEfficiency** die Selektion — Individuen mit
-höherer Effizienz überleben länger ohne Nahrung und reproduzieren sich häufiger
-bei gleichem Fraßerfolg.
-
----
-
-## 5. Räuber-Beute-Kreislauf (Lotka-Volterra)
+## 4. Räuber-Beute-Kreislauf (Lotka-Volterra)
 
 ### Populationsdynamik
 
@@ -287,6 +230,59 @@ Räuber verhungern → wenige Räuber → Herbivoren erholen sich → …
 Herbivore mit hoher `GeneAggression` fliehen effektiver (`EventFlee`) →
 überleben häufiger → reproduzieren sich häufiger →
 `GeneAggression` steigt unter Räuber-Druck in der Herbivoren-Population.
+
+---
+
+## 5. Wechselwirkungen und Gesamtsystem
+
+```
+  ┌──────────────────────────────────────┐     ┌──────────────────────────────┐
+  │        HERBIVOREN-POPULATION         │     │      RÄUBER-POPULATION       │
+  │  (+) Reproduktion wenn E ≥ 100       │     │  (+) Reproduktion (3 Kills)  │
+  │  (−) Tod: Hunger (E ≤ 0)            │◀────│  (−) Tod: kein Fraß          │
+  │  (−) Tod: Angriff (EventAttack)      │────▶│  (+) Energie pro Kill (+40)  │
+  └──────────┬───────────────▲───────────┘     └──────────────────────────────┘
+             │ Fraß          │ Energie
+             ▼               │
+  ┌──────────────────┐  ┌──────────────┐
+  │    NAHRUNG       │  │   ENERGIE    │
+  │ (+) Nachwuchs    │─▶│ (+) Fraß     │
+  │ (−) Fraß         │  │ (−) Kosten   │
+  └──────────┬───────┘  └──────────────┘
+             │ Verarmung
+             ▼
+  ┌──────────────────┐
+  │   VERWÜSTUNG     │
+  │ (+) bei Food<5%  │
+  │ (−) bei Food>50% │
+  └──────────┬───────┘
+             │ senkt Nachwuchsrate (×0.25)
+             └───────────────────────────▶ NAHRUNG (−)
+```
+
+### Stabilitätsbedingung (Herbivoren)
+
+Das Herbivoren-System ist stabil wenn:
+
+```
+Fraß_gesamt ≤ Nachwuchs_gesamt
+N × 2.0 ≤ LandTiles × RegrowthMeadow × FoodMax
+N ≤ LandTiles × 0.002 × 10 / 2.0  =  LandTiles × 0.01
+```
+
+Bei ~32.000 Land-Tiles: **N_stabil ≤ 320 Herbivoren** (rein auf Wiesennachwuchs).
+Räuber-Druck senkt das effektive Gleichgewicht zusätzlich.
+
+### Evolutionsdruck
+
+| Gen | Selektionsvorteil | Selektionsnachteil | Verstärkt durch |
+|---|---|---|---|
+| GeneSpeed (hoch) | Erreicht Nahrung schneller; flieht schneller | Höhere Energiekosten | Räuber-Druck |
+| GeneSight (hoch) | Findet Nahrung/Räuber in größerem Radius | Kein direkter Nachteil | Räuber-Druck |
+| GeneEfficiency (hoch) | Mehr Energie pro Bissen | Kein direkter Nachteil | Nahrungsknappheit |
+| GeneAggression (hoch) | Herbivore fliehen effektiver (EventFlee) | Kein direkter Nachteil | Räuber-Druck |
+
+Bei Nahrungsknappheit dominiert **GeneEfficiency**, unter Räuber-Druck steigt **GeneAggression**.
 
 ---
 
