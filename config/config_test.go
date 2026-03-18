@@ -39,6 +39,38 @@ func TestGhostK(t *testing.T) {
 	}
 }
 
+func TestValidate_PredatorConfig(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.Predator.EnergyPerKill = 0
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("Validate() = nil, want error für EnergyPerKill=0")
+	}
+
+	cfg2 := DefaultConfig()
+	cfg2.Predator.EnergyPerKill = -1.0
+	if err := cfg2.Validate(); err == nil {
+		t.Fatal("Validate() = nil, want error für EnergyPerKill<0")
+	}
+
+	cfg3 := DefaultConfig()
+	cfg3.Predator.ReproThreshold = cfg3.Predator.ReproReserve
+	if err := cfg3.Validate(); err == nil {
+		t.Fatal("Validate() = nil, want error für ReproThreshold == ReproReserve")
+	}
+
+	cfg4 := DefaultConfig()
+	cfg4.Predator.ReproThreshold = cfg4.Predator.ReproReserve - 1
+	if err := cfg4.Validate(); err == nil {
+		t.Fatal("Validate() = nil, want error für ReproThreshold < ReproReserve")
+	}
+
+	cfg5 := DefaultConfig()
+	cfg5.Predator.InitialPredators = -1
+	if err := cfg5.Validate(); err == nil {
+		t.Fatal("Validate() = nil, want error für InitialPredators<0")
+	}
+}
+
 func TestValidate_ZeroPopulation(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.MaxPopulation = 0
@@ -159,6 +191,11 @@ func TestValidate_ValidConfigs(t *testing.T) {
 			}
 		}
 
+		predEnergyPerKill := rapid.Float32Range(0.1, 100.0).Draw(rt, "predEnergyPerKill")
+		predReproThreshold := rapid.Float32Range(1.0, 500.0).Draw(rt, "predReproThreshold")
+		predReproReserve := rapid.Float32Range(0.1, predReproThreshold-0.1).Draw(rt, "predReproReserve")
+		predInitial := rapid.IntRange(0, 1000).Draw(rt, "predInitial")
+
 		cfg := Config{
 			WorldWidth:            worldWidth,
 			WorldHeight:           worldHeight,
@@ -173,7 +210,13 @@ func TestValidate_ValidConfigs(t *testing.T) {
 			BaseEnergyCost:        baseEnergy,
 			ReproductionThreshold: repThreshold,
 			ReproductionReserve:   repReserve,
-			GeneDefinitions:       geneDefs,
+			Predator: PredatorConfig{
+				InitialPredators: predInitial,
+				EnergyPerKill:    predEnergyPerKill,
+				ReproThreshold:   predReproThreshold,
+				ReproReserve:     predReproReserve,
+			},
+			GeneDefinitions: geneDefs,
 		}
 
 		if err := cfg.Validate(); err != nil {

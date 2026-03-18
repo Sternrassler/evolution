@@ -229,7 +229,68 @@ bei gleichem Fraßerfolg.
 
 ---
 
-## 5. Parametertabelle
+## 5. Räuber-Beute-Kreislauf (Lotka-Volterra)
+
+### Populationsdynamik
+
+Räuber jagen Herbivoren. Die daraus entstehende Schwingung folgt qualitativ den Lotka-Volterra-Gleichungen:
+
+```
+dH/dt = αH − βHP      (Herbivoren wachsen, sterben durch Räuber)
+dP/dt = δHP − γP      (Räuber wachsen durch Jagd, sterben ohne Beute)
+```
+
+Im Simulations-Modell abgebildet durch:
+- Herbivore verlieren Energie bei `EventAttack` → Tod wenn E ≤ 0
+- Räuber gewinnen `EnergyPerKill` pro erfolgreichem Kill
+- Räuber reproduzieren sich bei E ≥ `ReproThreshold`
+
+### Startbedingung
+
+```
+InitialPredators = 10  (~2 % von InitialPop = 500)
+```
+
+**Herleitung aus der Energiepyramide:**
+In realen Ökosystemen liegt das Räuber-Beute-Verhältnis bei 1:10 bis 1:100
+(Energieeffizienz ~10 % pro Trophiestufe). Für Savannensysteme typisch ~1:50.
+2 % entsprechen dem unteren Ende dieses Bereichs — bewusst konservativ,
+damit die Räuber-Population nicht sofort kollabiert, bevor Lotka-Volterra-Schwingungen entstehen können.
+
+### Energie-Transfer
+
+```
+EnergyPerKill = 40.0
+```
+
+Ein Herbivore startet mit `ReproductionReserve = 50` E. Der Räuber erhält 80 % davon —
+der Rest geht als Jagdaufwand verloren. Entspricht einem realistischen Trophie-Transfer-Wert.
+
+### Reproduktionsschwelle
+
+```
+ReproThreshold = 120.0  >  Herbivore-Threshold = 100.0
+```
+
+Räuber brauchen mehr Energie zur Reproduktion (höherer Körperaufwand, seltenere Beute).
+Bei `EnergyPerKill = 40.0` bedeutet das mindestens 3 erfolgreiche Kills seit dem letzten
+Reproduktionsereignis.
+
+### Rückkopplung (negativ — stabilisierend)
+
+```
+Viele Räuber → viele Kills → wenige Herbivoren →
+Räuber verhungern → wenige Räuber → Herbivoren erholen sich → …
+```
+
+**GeneAggression-Selektion:**
+Herbivore mit hoher `GeneAggression` fliehen effektiver (`EventFlee`) →
+überleben häufiger → reproduzieren sich häufiger →
+`GeneAggression` steigt unter Räuber-Druck in der Herbivoren-Population.
+
+---
+
+## 6. Parametertabelle
 
 | Parameter | Wert | Regelkreis | Wirkung |
 |---|---|---|---|
@@ -241,3 +302,7 @@ bei gleichem Fraßerfolg.
 | `DesertifyThreshold` | 0.05 | Verwüstung | Untergrenze Füllstand → Wüste |
 | `RecoverThreshold` | 0.50 | Verwüstung | Untergrenze Füllstand → Wiese |
 | `MaxPopulation` | 10.000 | Alle | Hartes Populationslimit |
+| `Predator.InitialPredators` | 10 | Räuber-Beute | Startzahl Räuber (~2% von InitialPop; Energiepyramide) |
+| `Predator.EnergyPerKill` | 40.0 | Räuber-Beute | Energiegewinn pro Kill (80% von ReproductionReserve) |
+| `Predator.ReproThreshold` | 120.0 | Räuber-Beute | Reproduktionsschwelle Räuber (mind. 3 Kills) |
+| `Predator.ReproReserve` | 60.0 | Räuber-Beute | Startenergie Räuber-Kind (= 1.5 Kills) |

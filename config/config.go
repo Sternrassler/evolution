@@ -43,8 +43,19 @@ type Config struct {
 	DesertifyThreshold float32 `toml:"desertify_threshold"` // Food/FoodMax < dieser Wert → Wiese wird Wüste
 	RecoverThreshold   float32 `toml:"recover_threshold"`   // Food/FoodMax > dieser Wert → Wüste wird Wiese
 
+	// Räuber
+	Predator PredatorConfig `toml:"predator"`
+
 	// Gen-Definitionen
 	GeneDefinitions []GeneDef `toml:"gene_definitions"`
+}
+
+// PredatorConfig enthält alle Räuber-spezifischen Simulations-Parameter.
+type PredatorConfig struct {
+	InitialPredators int     `toml:"initial_predators"` // Default: 10 (~2% von InitialPop; Energiepyramide: 1 Räuber pro ~50 Beute)
+	EnergyPerKill    float32 `toml:"energy_per_kill"`   // Default: 40.0 (80% von ReproductionReserve=50)
+	ReproThreshold   float32 `toml:"repro_threshold"`   // Default: 120.0 (> Herbivore-Threshold=100; mind. 3 Kills bis Reproduktion)
+	ReproReserve     float32 `toml:"repro_reserve"`     // Default: 60.0 (Startenergie des Kindes = 1.5 Kills)
 }
 
 // GeneDef beschreibt ein Gen: Wertebereich und Mutationsparameter.
@@ -88,6 +99,13 @@ func DefaultConfig() Config {
 
 		DesertifyThreshold: 0.05,
 		RecoverThreshold:   0.50,
+
+		Predator: PredatorConfig{
+			InitialPredators: 10,
+			EnergyPerKill:    40.0,
+			ReproThreshold:   120.0,
+			ReproReserve:     60.0,
+		},
 
 		GeneDefinitions: []GeneDef{
 			{Key: entity.GeneSpeed, Min: 0.5, Max: 3.0, MutationRate: 0.1, MutationStep: 0.1},
@@ -138,6 +156,16 @@ func (c *Config) Validate() error {
 	}
 	if c.TicksPerSecond <= 0 {
 		return fmt.Errorf("TicksPerSecond muss > 0 sein, ist %d", c.TicksPerSecond)
+	}
+	if c.Predator.InitialPredators < 0 {
+		return fmt.Errorf("Predator.InitialPredators darf nicht negativ sein, ist %d", c.Predator.InitialPredators)
+	}
+	if c.Predator.EnergyPerKill <= 0 {
+		return fmt.Errorf("Predator.EnergyPerKill muss > 0 sein, ist %f", c.Predator.EnergyPerKill)
+	}
+	if c.Predator.ReproThreshold <= c.Predator.ReproReserve {
+		return fmt.Errorf("Predator.ReproThreshold (%f) muss > ReproReserve (%f) sein",
+			c.Predator.ReproThreshold, c.Predator.ReproReserve)
 	}
 	if len(c.GeneDefinitions) != entity.NumGenes {
 		return fmt.Errorf("GeneDefinitions muss genau %d Einträge haben, hat %d", entity.NumGenes, len(c.GeneDefinitions))
