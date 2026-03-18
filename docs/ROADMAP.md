@@ -1217,6 +1217,18 @@ func main() {
 ## Meilenstein 11 — Stufe 2: Räuber & Beute
 
 > **Abhängigkeiten:** M10 (MVP vollständig)
+> **GitHub:** [Milestone M11](https://github.com/Sternrassler/evolution/milestone/2)
+
+### Issues
+
+| # | Titel | Abhängigkeiten |
+|---|---|---|
+| [#18](https://github.com/Sternrassler/evolution/issues/18) | ADR-011 — Predator-Agent-Architektur | — |
+| [#3](https://github.com/Sternrassler/evolution/issues/3) | feat(entity): GeneAggression + EntityType | Blocked by #18 |
+| [#4](https://github.com/Sternrassler/evolution/issues/4) | feat(entity): EventAttack + EventFlee | Blocked by #18 |
+| [#6](https://github.com/Sternrassler/evolution/issues/6) | feat(config): PredatorConfig-Felder | Blocked by #18 |
+| [#5](https://github.com/Sternrassler/evolution/issues/5) | feat(predator): Predator-Agent implementieren | #18, #3, #4 |
+| [#7](https://github.com/Sternrassler/evolution/issues/7) | feat(sim): Räuber-Beute-Integration | #3, #4, #5, #6 |
 
 ### Neue Dateien / Änderungen
 
@@ -1277,6 +1289,16 @@ EventFlee    EventType = 5   // Herbivore flieht
 ## Meilenstein 12 — Stufe 3: Umweltbedingungen
 
 > **Abhängigkeiten:** M11
+> **GitHub:** [Milestone M12](https://github.com/Sternrassler/evolution/milestone/1)
+
+### Issues
+
+| # | Titel | Abhängigkeiten |
+|---|---|---|
+| [#10](https://github.com/Sternrassler/evolution/issues/10) | feat(config): SeasonConfig + CatastropheConfig | — |
+| [#8](https://github.com/Sternrassler/evolution/issues/8) | feat(world): AdvanceEnvironment() — Saison-Zyklus | #10 |
+| [#9](https://github.com/Sternrassler/evolution/issues/9) | feat(world): Katastrophen (Dürre, Flut, Seuche) | #10 |
+| [#11](https://github.com/Sternrassler/evolution/issues/11) | feat(world): Feuchtigkeitsgradient — Nachwuchsrate in Wassernähe | — |
 
 ### Neue Dateien / Änderungen
 
@@ -1331,6 +1353,16 @@ const (
 ## Meilenstein 13 — Stufe 4: Karten-Editor
 
 > **Abhängigkeiten:** M12
+> **GitHub:** [Milestone M13](https://github.com/Sternrassler/evolution/milestone/3)
+
+### Issues
+
+| # | Titel | Abhängigkeiten |
+|---|---|---|
+| [#19](https://github.com/Sternrassler/evolution/issues/19) | ADR-012 — Editor-Modus State-Modellierung | — |
+| [#12](https://github.com/Sternrassler/evolution/issues/12) | feat(gen): EditorSource implementiert TileSource | #19 |
+| [#14](https://github.com/Sternrassler/evolution/issues/14) | feat(ui): Taste E togglet Editor-Modus | #19, #12 |
+| [#13](https://github.com/Sternrassler/evolution/issues/13) | feat(ui): Editor-Modus mit Maus-Interaktion | #19, #12, #14 |
 
 ### Neue Dateien / Änderungen
 
@@ -1380,6 +1412,15 @@ R                       → Simulation neu starten mit aktueller Karte
 ## Meilenstein 14 — Stufe 5: Detailansicht
 
 > **Abhängigkeiten:** M13
+> **GitHub:** [Milestone M14](https://github.com/Sternrassler/evolution/milestone/4)
+
+### Issues
+
+| # | Titel | Abhängigkeiten |
+|---|---|---|
+| [#15](https://github.com/Sternrassler/evolution/issues/15) | feat(sim): LineageTracker als TickObserver | — |
+| [#16](https://github.com/Sternrassler/evolution/issues/16) | feat(ui): Inspector-Panel (Stammbaum + Genverlauf) | #15 |
+| [#17](https://github.com/Sternrassler/evolution/issues/17) | feat(ui): Klick auf Individuum öffnet Inspector | #15, #16 |
 
 ### Neue Dateien / Änderungen
 
