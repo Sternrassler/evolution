@@ -490,17 +490,21 @@ func (s *Simulation) totalPopulation() int {
 func (s *Simulation) buildSnapshot(stats TickStats) WorldSnapshot {
 	inds := s.allIndividuals()
 	sort.Slice(inds, func(i, j int) bool { return inds[i].ID < inds[j].ID })
+	var foodSum float32
 	for _, t := range s.grid.Tiles {
 		if t.Biome == world.BiomeWater {
 			continue
 		}
 		stats.LandTiles++
-		if t.Food > 0 {
-			stats.FoodTiles++
+		if t.FoodMax > 0 {
+			foodSum += t.Food / t.FoodMax
 		}
 		if t.Biome == world.BiomeDesert {
 			stats.DesertTiles++
 		}
+	}
+	if stats.LandTiles > 0 {
+		stats.AvgFoodPct = foodSum / float32(stats.LandTiles) * 100
 	}
 	return WorldSnapshot{
 		Tiles:       s.grid.Tiles,

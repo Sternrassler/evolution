@@ -79,7 +79,7 @@ func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Con
 	}
 	h.hist.push(
 		float32(snap.Stats.Population)/float32(maxPop)*100,
-		float32(snap.Stats.FoodTiles)/float32(land)*100,
+		snap.Stats.AvgFoodPct,
 		float32(snap.Stats.DesertTiles)/float32(land)*100,
 	)
 
@@ -258,7 +258,7 @@ func (h *HUD) drawChartLegend(screen *ebiten.Image, pad, ty int) {
 		l string
 	}{
 		{color.RGBA{220, 200, 50, 255}, "Population (% von Max)"},
-		{color.RGBA{50, 200, 50, 255}, "Nahrung (% der Land-Tiles)"},
+		{color.RGBA{50, 200, 50, 255}, "Nahrung (Ø Füllstand %)"},
 		{color.RGBA{200, 130, 30, 255}, "Wüste (% der Land-Tiles)"},
 	} {
 		vector.FillRect(screen, float32(pad), float32(ty), swatchSize, swatchSize, e.c, false)

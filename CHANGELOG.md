@@ -5,6 +5,10 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Diagramm: Nahrungskurve zeigte "Tiles mit Food > 0" (blieb nahe 100% trotz Verwüstung); ersetzt durch durchschnittlichen Füllstand `Food/FoodMax × 100` — fällt jetzt korrekt wenn Tiles verarmen
+
 ### Changed
 
 - Diagramm-Kurven auf gemeinsame 0–100%-Achse umgestellt: Population (% von MaxPop), Nahrung (% der Land-Tiles mit Food > 0), Wüste (% der Land-Tiles); Gitternetz bei 25/50/75%
