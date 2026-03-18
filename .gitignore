@@ -7,3 +7,6 @@
 *.test
 *.out
 vendor/
+
+# Test-Artefakte
+config/testdata/
