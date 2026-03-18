@@ -4,20 +4,43 @@ import (
 	"image"
 
 	"github.com/Sternrassler/evolution/sim/entity"
+	"github.com/Sternrassler/evolution/sim/predator"
 	"github.com/Sternrassler/evolution/sim/world"
 )
 
-// RunPhase1 iteriert alle lebenden Individuen und führt ihre Tick-Logik aus.
-// Schreibt Events in p.Buf. KEINE Weltmutation.
-// ctx muss world.WorldContext implementieren.
+// RunPhase1 iteriert alle lebenden Herbivoren und führt ihre Tick-Logik aus.
+// Schreibt Events in p.Buf (nach Reset). KEINE Weltmutation.
+// Räuber werden NICHT verarbeitet — sie laufen sequentiell in RunPredatorPhase1.
 func (p *Partition) RunPhase1(ctx world.WorldContext) {
 	p.Buf.Reset()
 	for i := int32(0); i < int32(p.Len); i++ {
-		if !p.Alive[i] {
+		if !p.Alive[i] || p.EntityType[i] == entity.Predator {
 			continue
 		}
 		a := agent{idx: i, p: p}
 		a.tick(ctx, &p.Buf)
+	}
+}
+
+// RunPredatorPhase1 verarbeitet alle lebenden Räuber sequentiell.
+// Hängt Events an p.Buf an (kein Reset — herbivore Events bleiben erhalten).
+// Wird nach RunPhase1 aus dem Simulations-Koordinator aufgerufen (sequentiell, deterministisch).
+// predReproThreshold und predReproReserve kommen aus config.PredatorConfig.
+func (p *Partition) RunPredatorPhase1(ctx world.WorldContext, predReproThreshold, predReproReserve float32) {
+	for i := int32(0); i < int32(p.Len); i++ {
+		if !p.Alive[i] || p.EntityType[i] != entity.Predator {
+			continue
+		}
+		s := predator.State{
+			Idx:            i,
+			X:              p.X[i],
+			Y:              p.Y[i],
+			Energy:         p.Energy[i],
+			Genes:          p.Genes[i],
+			ReproThreshold: predReproThreshold,
+			ReproReserve:   predReproReserve,
+		}
+		predator.Tick(s, ctx, &p.Buf)
 	}
 }
 
