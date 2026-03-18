@@ -1,0 +1,63 @@
+# Evolution Simulation — Konfiguration
+# Alle Felder sind optional; fehlende Werte werden aus DefaultConfig() übernommen.
+# Starten mit: make run  (liest evolution.toml automatisch wenn vorhanden)
+
+# --- Welt ---
+world_width    = 200
+world_height   = 200
+
+# --- Population ---
+max_population = 10000
+initial_pop    = 800     # mehr Startbeute → L-V-Schwingungen starten höher
+
+ticks_per_second = 20
+
+# --- Energie (Herbivore) ---
+base_energy_cost        = 0.5
+reproduction_threshold  = 100.0
+reproduction_reserve    = 50.0
+
+# --- Nahrung ---
+regrowth_meadow = 0.002
+regrowth_desert = 0.0005
+
+# --- Verwüstung ---
+desertify_threshold = 0.05
+recover_threshold   = 0.50
+
+# --- Räuber ---
+[predator]
+initial_predators = 25      # mehr Startpopulation → Puffer gegen stochastisches Aussterben
+energy_per_kill   = 10.0    # (war 5.0) mehr Energie pro Kill → überlebt Phasen mit wenig Beute
+repro_threshold   = 250.0   # (war 360.0) erste Reproduktion bei ~63 erfolgreichen Kills
+repro_reserve     = 60.0    # Startenergie Räuber-Kind
+max_sight         = 20      # 2× Herbivore-Sichtweite
+
+# --- Gene ---
+[[gene_definitions]]
+key           = 0   # GeneSpeed
+min           = 0.5
+max           = 3.0
+mutation_rate = 0.1
+mutation_step = 0.1
+
+[[gene_definitions]]
+key           = 1   # GeneSight
+min           = 1.0
+max           = 10.0
+mutation_rate = 0.1
+mutation_step = 0.5
+
+[[gene_definitions]]
+key           = 2   # GeneEfficiency
+min           = 0.5
+max           = 2.0
+mutation_rate = 0.05
+mutation_step = 0.05
+
+[[gene_definitions]]
+key           = 3   # GeneAggression
+min           = 0.0
+max           = 1.0
+mutation_rate = 0.05
+mutation_step = 0.05
