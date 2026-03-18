@@ -7,6 +7,12 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ### Added
 
+- `sim/partition/partition.go`: `EntityType []entity.EntityType` SoA-Array; `AddIndividual` und `ToIndividuals` setzen/erhalten EntityType (Issue #7)
+- `sim/partition/worker.go`: `RunPhase1` verarbeitet nur Herbivoren (parallel); `RunPredatorPhase1` verarbeitet Räuber sequentiell (deterministisch) — EntityType-Dispatch via `entity.Predator`-Check (Issue #7, ADR-011)
+- `sim/snapshot.go`: `TickStats.Predators int` (lebende Räuber) und `TickStats.Kills int` (Räuber-Kills pro Tick) (Issue #7)
+- `sim/sim.go`: `spawnInitialPredators()` — spawnt `cfg.Predator.InitialPredators` Räuber mit `EntityType=Predator`; `applyPhase2` löst `EventAttack` auf (`EnergyPerKill`-Transfer, Kill-Counter), EntityType-spezifische Energiekosten (Räuber: 0.8+speed×0.15), EntityType-spezifische Reproduktionsschwellen; EntityType wird bei Boundary-Crossing erhalten (Issue #7)
+- `sim/sim_test.go`: 3 neue Integrationstests: `TestPredatorsSpawn`, `TestPredatorsInStats`, `TestPredatorsAttackHerbivores`; `TestBoundaryCrossing` deaktiviert Räuber via `InitialPredators=0` (Issue #7)
+
 - `sim/entity/gene.go`: `GeneAggression GeneKey = 3`, `NumGenes = 4` (Issue #3)
 - `sim/entity/individual.go`: `EntityType`-Typ mit `Herbivore`/`Predator`-Konstanten; `EntityType`-Feld in `Individual` (Issue #3)
 - `config/config.go`: Viertes `GeneDef` für `GeneAggression` in `DefaultConfig()` (Issue #3)

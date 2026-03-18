@@ -18,13 +18,14 @@ type GhostRow struct {
 // Alle Arrays sind einmalig pre-allokiert (cap = MaxPopulation).
 type Partition struct {
 	// SoA-Hot-Arrays — row-major, cache-freundlich
-	X      []int32
-	Y      []int32
-	Energy []float32
-	Age    []int32
-	Alive  []bool
-	Genes  [][entity.NumGenes]float32
-	IDs    []uint64
+	X          []int32
+	Y          []int32
+	Energy     []float32
+	Age        []int32
+	Alive      []bool
+	Genes      [][entity.NumGenes]float32
+	IDs        []uint64
+	EntityType []entity.EntityType
 
 	// Management
 	FreeList []int32           // Indizes toter Slots zur Wiederverwendung
@@ -45,17 +46,18 @@ func NewPartition(maxPop, startRow, endRow int) *Partition {
 	cap := maxPop
 	buf := entity.NewEventBuffer(cap * 4) // pro Individuum max ~4 Events
 	return &Partition{
-		X:        make([]int32, 0, cap),
-		Y:        make([]int32, 0, cap),
-		Energy:   make([]float32, 0, cap),
-		Age:      make([]int32, 0, cap),
-		Alive:    make([]bool, 0, cap),
-		Genes:    make([][entity.NumGenes]float32, 0, cap),
-		IDs:      make([]uint64, 0, cap),
-		FreeList: make([]int32, 0, cap/4),
-		Buf:      buf,
-		StartRow: startRow,
-		EndRow:   endRow,
+		X:          make([]int32, 0, cap),
+		Y:          make([]int32, 0, cap),
+		Energy:     make([]float32, 0, cap),
+		Age:        make([]int32, 0, cap),
+		Alive:      make([]bool, 0, cap),
+		Genes:      make([][entity.NumGenes]float32, 0, cap),
+		IDs:        make([]uint64, 0, cap),
+		EntityType: make([]entity.EntityType, 0, cap),
+		FreeList:   make([]int32, 0, cap/4),
+		Buf:        buf,
+		StartRow:   startRow,
+		EndRow:     endRow,
 	}
 }
 
@@ -72,6 +74,7 @@ func (p *Partition) AddIndividual(ind entity.Individual) int32 {
 		p.Alive[idx] = true
 		p.Genes[idx] = ind.Genes
 		p.IDs[idx] = ind.ID
+		p.EntityType[idx] = ind.EntityType
 		return idx
 	}
 	idx := int32(p.Len)
@@ -82,6 +85,7 @@ func (p *Partition) AddIndividual(ind entity.Individual) int32 {
 	p.Alive = append(p.Alive, true)
 	p.Genes = append(p.Genes, ind.Genes)
 	p.IDs = append(p.IDs, ind.ID)
+	p.EntityType = append(p.EntityType, ind.EntityType)
 	p.Len++
 	return idx
 }
@@ -111,12 +115,14 @@ func (p *Partition) ToIndividuals() []entity.Individual {
 		if !p.Alive[i] {
 			continue
 		}
-		result = append(result, entity.NewIndividual(
+		ind := entity.NewIndividual(
 			p.IDs[i],
 			image.Pt(int(p.X[i]), int(p.Y[i])),
 			p.Genes[i],
 			p.Energy[i],
-		))
+		)
+		ind.EntityType = p.EntityType[i]
+		result = append(result, ind)
 	}
 	return result
 }

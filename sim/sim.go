@@ -88,6 +88,7 @@ func New(cfg config.Config, rng RandSource, observer TickObserver) (*Simulation,
 
 	// Initiale Population
 	s.spawnInitialPopulation()
+	s.spawnInitialPredators()
 
 	return s, exporter, nil
 }
@@ -117,6 +118,25 @@ func (s *Simulation) partitionFor(y int) int {
 		idx = n - 1
 	}
 	return idx
+}
+
+// spawnInitialPredators erzeugt die initialen Räuber.
+func (s *Simulation) spawnInitialPredators() {
+	cfg := s.cfg
+	for range cfg.Predator.InitialPredators {
+		x := s.rng.Intn(cfg.WorldWidth)
+		y := s.rng.Intn(cfg.WorldHeight)
+		tile := s.grid.At(x, y)
+		if !tile.IsWalkable() {
+			continue
+		}
+		genes := randomGenes(cfg.GeneDefinitions, s.rng)
+		ind := entity.NewIndividual(s.nextID, image.Pt(x, y), genes, cfg.Predator.ReproReserve)
+		ind.EntityType = entity.Predator
+		s.nextID++
+		pIdx := s.partitionFor(y)
+		s.partitions[pIdx].AddIndividual(ind)
+	}
 }
 
 // spawnInitialPopulation erzeugt die initiale Population.
@@ -159,23 +179,29 @@ func (s *Simulation) Step() {
 	s.copyGhostRows(cfg)
 
 	// 3. Spatial-Grid-Rebuild
-	allInds := s.allIndividuals()
+	allInds, globalRefs := s.collectAll()
 	s.spatialGrid.Rebuild(allInds)
 
-	// 4. Phase 1 — parallel
+	// 4. Phase 1 — Herbivoren parallel
 	var wg sync.WaitGroup
 	for _, p := range s.partitions {
 		wg.Add(1)
 		go func(part *partition.Partition) {
 			defer wg.Done()
-			ctx := s.newWorldContext(part, cfg)
+			ctx := s.newWorldContext(part, cfg, s.phase1Rng)
 			part.RunPhase1(ctx)
 		}(p)
 	}
 	wg.Wait()
 
+	// 4b. Räuber-Phase-1 — sequentiell (deterministisch, s.rng ohne Mutex)
+	for _, p := range s.partitions {
+		ctx := s.newWorldContext(p, cfg, s.rng)
+		p.RunPredatorPhase1(ctx, cfg.Predator.ReproThreshold, cfg.Predator.ReproReserve)
+	}
+
 	// 5. Phase 2 — sequentiell
-	stats := s.applyPhase2(cfg)
+	stats := s.applyPhase2(cfg, globalRefs)
 
 	// 6. Regrowth (nach Phase 2)
 	stats.EnergyRegrown = s.grid.ApplyRegrowth(cfg.RegrowthMeadow, cfg.RegrowthDesert)
@@ -216,13 +242,35 @@ func (s *Simulation) swapPendingConfig() config.Config {
 	return s.cfg
 }
 
+// globalRef bildet einen globalen Index (aus SpatialGrid) auf Partition + SoA-Index ab.
+type globalRef struct {
+	part   *partition.Partition
+	soaIdx int32
+}
+
 // allIndividuals sammelt alle lebenden Individuen über alle Partitionen.
 func (s *Simulation) allIndividuals() []entity.Individual {
-	var all []entity.Individual
+	inds, _ := s.collectAll()
+	return inds
+}
+
+// collectAll gibt alle lebenden Individuen und die zugehörigen globalRefs zurück.
+// Die Reihenfolge entspricht dem Rebuild-Input des SpatialGrid (Partitions-Reihenfolge → SoA-Index).
+func (s *Simulation) collectAll() ([]entity.Individual, []globalRef) {
+	var inds []entity.Individual
+	var refs []globalRef
 	for _, p := range s.partitions {
-		all = append(all, p.ToIndividuals()...)
+		for i := range p.Len {
+			if !p.Alive[i] {
+				continue
+			}
+			ind := entity.NewIndividual(p.IDs[i], image.Pt(int(p.X[i]), int(p.Y[i])), p.Genes[i], p.Energy[i])
+			ind.EntityType = p.EntityType[i]
+			inds = append(inds, ind)
+			refs = append(refs, globalRef{part: p, soaIdx: int32(i)})
+		}
 	}
-	return all
+	return inds, refs
 }
 
 // copyGhostRows kopiert K Grenzzeilen zwischen benachbarten Partitionen.
@@ -232,12 +280,13 @@ func (s *Simulation) copyGhostRows(_ config.Config) {
 }
 
 // newWorldContext erstellt einen WorldContext für eine Partition.
-// Verwendet phase1Rng (mutex-geschützt) statt s.rng, da Phase 1 parallel läuft.
-func (s *Simulation) newWorldContext(_ *partition.Partition, cfg config.Config) *worldContextImpl {
+// rng wird explizit übergeben: phase1Rng (mutex) für parallele Herbivoren,
+// s.rng (direkt) für sequentielle Predator-Ticks.
+func (s *Simulation) newWorldContext(_ *partition.Partition, cfg config.Config, rng RandSource) *worldContextImpl {
 	return &worldContextImpl{
 		grid:        s.grid,
 		spatialGrid: s.spatialGrid,
-		rng:         s.phase1Rng,
+		rng:         rng,
 		cfg:         cfg,
 		nearBuf:     make([]int32, 0, 32),
 	}
@@ -276,9 +325,10 @@ func (w *worldContextImpl) MaxSpeed() float32              { return float32(w.cf
 func (w *worldContextImpl) MaxSight() float32              { return float32(w.cfg.MaxSightRange) }
 
 // applyPhase2 wendet alle Events sequentiell an.
-// Reihenfolge: EventDie → EventMove → EventEat → EventReproduce
+// Reihenfolge: EventDie → EventAttack → EventMove → EventEat → EventReproduce
 // Konfliktauflösung: Last-Write-Loses (Essen), niedrigere ID gewinnt (Reproduktion)
-func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
+// globalRefs bildet globale SpatialGrid-Indizes auf Partitions-SoA-Slots ab.
+func (s *Simulation) applyPhase2(cfg config.Config, globalRefs []globalRef) TickStats {
 	var stats TickStats
 
 	// Alle Events sammeln (über alle Partitionen)
@@ -287,13 +337,15 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 		part  *partition.Partition
 	}
 
-	var dies, moves, eats, reproduces []indexedEvent
+	var dies, attacks, moves, eats, reproduces []indexedEvent
 	for _, p := range s.partitions {
 		for _, ev := range p.Buf.Events() {
 			ie := indexedEvent{event: ev, part: p}
 			switch ev.Type {
 			case entity.EventDie:
 				dies = append(dies, ie)
+			case entity.EventAttack:
+				attacks = append(attacks, ie)
 			case entity.EventMove:
 				moves = append(moves, ie)
 			case entity.EventEat:
@@ -304,7 +356,7 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 		}
 	}
 
-	// Tod anwenden
+	// Tod anwenden (Energie ≤ 0 in Phase 1)
 	for _, ie := range dies {
 		idx := ie.event.AgentIdx
 		if int(idx) < ie.part.Len && ie.part.Alive[idx] {
@@ -312,6 +364,29 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 			ie.part.MarkDead(idx)
 			stats.Deaths++
 		}
+	}
+
+	// Angriffe anwenden: Räuber tötet Herbivore, gewinnt Energie
+	for _, ie := range attacks {
+		predIdx := ie.event.AgentIdx
+		if int(predIdx) >= ie.part.Len || !ie.part.Alive[predIdx] {
+			continue
+		}
+		targetGlobalIdx := int(ie.event.Value)
+		if targetGlobalIdx < 0 || targetGlobalIdx >= len(globalRefs) {
+			continue
+		}
+		ref := globalRefs[targetGlobalIdx]
+		if !ref.part.Alive[ref.soaIdx] {
+			continue // Beute bereits tot
+		}
+		// Beute töten
+		stats.EnergyLostToDeath += ref.part.Energy[ref.soaIdx]
+		ref.part.MarkDead(ref.soaIdx)
+		stats.Deaths++
+		stats.Kills++
+		// Räuber bekommt Energie
+		ie.part.Energy[predIdx] += cfg.Predator.EnergyPerKill
 	}
 
 	// Bewegung anwenden
@@ -345,12 +420,13 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 				ie.part.Genes[idx],
 				ie.part.Energy[idx],
 			)
+			ind.EntityType = ie.part.EntityType[idx] // EntityType erhalten
 			ie.part.MarkDead(idx)
 			s.partitions[newPartIdx].AddIndividual(ind)
 		}
 	}
 
-	// Essen anwenden
+	// Essen anwenden (nur Herbivore fressen; Räuber essen kein Gras)
 	for _, ie := range eats {
 		idx := ie.event.AgentIdx
 		if int(idx) >= ie.part.Len || !ie.part.Alive[idx] {
@@ -374,10 +450,11 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 
 	// Reproduktion anwenden (niedrigere ID gewinnt bei Konflikt auf gleicher Pos)
 	type reproRequest struct {
-		pos  image.Point
-		id   uint64
-		part *partition.Partition
-		idx  int32
+		pos        image.Point
+		id         uint64
+		part       *partition.Partition
+		idx        int32
+		entityType entity.EntityType
 	}
 
 	reproByPos := make(map[image.Point]reproRequest)
@@ -386,14 +463,19 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 		if int(idx) >= ie.part.Len || !ie.part.Alive[idx] {
 			continue
 		}
-		if ie.part.Energy[idx] < cfg.ReproductionThreshold {
+		et := ie.part.EntityType[idx]
+		threshold := cfg.ReproductionThreshold
+		if et == entity.Predator {
+			threshold = cfg.Predator.ReproThreshold
+		}
+		if ie.part.Energy[idx] < threshold {
 			continue
 		}
 		pos := ie.event.TargetPos
 		id := ie.part.IDs[idx]
 		existing, exists := reproByPos[pos]
 		if !exists || id < existing.id {
-			reproByPos[pos] = reproRequest{pos: pos, id: id, part: ie.part, idx: idx}
+			reproByPos[pos] = reproRequest{pos: pos, id: id, part: ie.part, idx: idx, entityType: et}
 		}
 	}
 
@@ -409,20 +491,26 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 		if totalPop >= cfg.MaxPopulation {
 			break
 		}
-		if !r.part.Alive[r.idx] || r.part.Energy[r.idx] < cfg.ReproductionThreshold {
+		threshold := cfg.ReproductionThreshold
+		reserve := cfg.ReproductionReserve
+		if r.entityType == entity.Predator {
+			threshold = cfg.Predator.ReproThreshold
+			reserve = cfg.Predator.ReproReserve
+		}
+		if !r.part.Alive[r.idx] || r.part.Energy[r.idx] < threshold {
 			continue
 		}
 		// Energie teilen
-		r.part.Energy[r.idx] -= cfg.ReproductionReserve
+		r.part.Energy[r.idx] -= reserve
 		childGenes := mutateGenes(r.part.Genes[r.idx], cfg.GeneDefinitions, s.rng)
-		childEnergy := cfg.ReproductionReserve
 
 		childPos := r.pos
 		if !s.grid.InBounds(childPos.X, childPos.Y) || !s.grid.At(childPos.X, childPos.Y).IsWalkable() {
 			childPos = image.Pt(int(r.part.X[r.idx]), int(r.part.Y[r.idx]))
 		}
 
-		child := entity.NewIndividual(s.nextID, childPos, childGenes, childEnergy)
+		child := entity.NewIndividual(s.nextID, childPos, childGenes, reserve)
+		child.EntityType = r.entityType // Kind erbt EntityType
 		s.nextID++
 		pIdx := s.partitionFor(childPos.Y)
 		s.partitions[pIdx].AddIndividual(child)
@@ -431,20 +519,36 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 	}
 
 	// Energiekosten anwenden — MUSS nach Essen passieren damit Nahrung zählt.
-	// Phase 1 berechnet die Kosten nur lokal; hier werden sie auf SoA-Arrays geschrieben.
+	// Phase 1 berechnet Kosten nur lokal; hier werden sie auf SoA-Arrays geschrieben.
+	// Räuber: 0.8 + speed×0.15 (höherer Körperaufwand, ADR-011)
+	// Herbivore: BaseEnergyCost + speed×0.1
 	for _, p := range s.partitions {
 		for i := range p.Len {
 			if !p.Alive[i] {
 				continue
 			}
 			speedGene := p.Genes[i][entity.GeneSpeed]
-			cost := cfg.BaseEnergyCost + speedGene*0.1
+			var cost float32
+			if p.EntityType[i] == entity.Predator {
+				cost = float32(0.8) + speedGene*0.15
+			} else {
+				cost = cfg.BaseEnergyCost + speedGene*0.1
+			}
 			p.Energy[i] -= cost
 			stats.EnergyConsumed += cost
 			if p.Energy[i] <= 0 {
 				stats.EnergyLostToDeath += 0
 				p.MarkDead(int32(i))
 				stats.Deaths++
+			}
+		}
+	}
+
+	// Räuber zählen
+	for _, p := range s.partitions {
+		for i := range p.Len {
+			if p.Alive[i] && p.EntityType[i] == entity.Predator {
+				stats.Predators++
 			}
 		}
 	}

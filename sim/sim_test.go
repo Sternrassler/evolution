@@ -220,9 +220,11 @@ func TestSnapshotPopMatchesPartitions(t *testing.T) {
 
 // TestBoundaryCrossing prüft dass Individuen nach mehreren Ticks tatsächlich
 // Partitionsgrenzen überschreiten — beide Partitionen haben Individuen.
+// Räuber sind deaktiviert damit Predator-Druck nicht eine Partition leer frisst.
 func TestBoundaryCrossing(t *testing.T) {
 	cfg := testConfig()
 	cfg.NumPartitions = 2
+	cfg.Predator.InitialPredators = 0 // keine Räuber: Herbivoren füllen beide Partitionen
 	rng := newTestRng(99)
 	s, _, err := New(cfg, rng, nil)
 	if err != nil {
@@ -304,5 +306,68 @@ func TestPopulationCap(t *testing.T) {
 		if pop > cfg.MaxPopulation {
 			t.Errorf("tick %d: population %d exceeds MaxPopulation %d", tick, pop, cfg.MaxPopulation)
 		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Räuber-Integration
+// ---------------------------------------------------------------------------
+
+// TestPredatorsSpawn prüft dass InitialPredators Räuber nach New() existieren.
+func TestPredatorsSpawn(t *testing.T) {
+	cfg := testConfig()
+	cfg.Predator.InitialPredators = 5
+	rng := newTestRng(42)
+	s, _, err := New(cfg, rng, nil)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+	var count int
+	for _, p := range s.partitions {
+		for i := range p.Len {
+			if p.Alive[i] && p.EntityType[i] == entity.Predator {
+				count++
+			}
+		}
+	}
+	if count != cfg.Predator.InitialPredators {
+		t.Errorf("Predator count = %d, want %d", count, cfg.Predator.InitialPredators)
+	}
+}
+
+// TestPredatorsInStats prüft dass TickStats.Predators nach einem Tick gesetzt ist.
+func TestPredatorsInStats(t *testing.T) {
+	cfg := testConfig()
+	cfg.Predator.InitialPredators = 5
+	rng := newTestRng(42)
+	s, exp, err := New(cfg, rng, nil)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+	s.Step()
+	snap := exp.Load()
+	if snap.Stats.Predators == 0 {
+		t.Error("Stats.Predators == 0 nach erstem Tick mit 5 InitialPredators")
+	}
+}
+
+// TestPredatorsAttackHerbivores prüft dass Kills nach mehreren Ticks > 0 sind.
+func TestPredatorsAttackHerbivores(t *testing.T) {
+	cfg := testConfig()
+	cfg.Predator.InitialPredators = 10
+	cfg.InitialPop = 100
+	rng := newTestRng(42)
+	s, exp, err := New(cfg, rng, nil)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+	totalKills := 0
+	for range 50 {
+		s.Step()
+		snap := exp.Load()
+		totalKills += snap.Stats.Kills
+	}
+	if totalKills == 0 {
+		t.Error("keine Kills nach 50 Ticks mit 10 Räubern und 100 Herbivoren auf 20×20 Karte")
 	}
 }

@@ -13,14 +13,16 @@ import (
 // TickStats enthält aggregierte Statistiken eines Ticks.
 type TickStats struct {
 	Population        int
+	Predators         int     // Anzahl lebender Räuber
 	Births            int
 	Deaths            int
+	Kills             int     // Räuber-Kills in diesem Tick
 	EnergyConsumed    float32
 	EnergyLostToDeath float32
 	EnergyRegrown     float32
-	AvgFoodPct  float32 // Durchschnittlicher Füllstand (Food/FoodMax) aller Land-Tiles × 100
-	DesertTiles int     // Wüsten-Tiles nach Verwüstung/Erholung
-	LandTiles   int     // Nicht-Wasser-Tiles gesamt (konstant)
+	AvgFoodPct        float32 // Durchschnittlicher Füllstand (Food/FoodMax) aller Land-Tiles × 100
+	DesertTiles       int     // Wüsten-Tiles nach Verwüstung/Erholung
+	LandTiles         int     // Nicht-Wasser-Tiles gesamt (konstant)
 }
 
 // WorldSnapshot ist ein immutabler Zustand der Welt nach einem Tick.
