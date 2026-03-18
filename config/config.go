@@ -53,9 +53,9 @@ type Config struct {
 // PredatorConfig enthält alle Räuber-spezifischen Simulations-Parameter.
 type PredatorConfig struct {
 	InitialPredators int     `toml:"initial_predators"` // Default: 10 (~2% von InitialPop; Energiepyramide: 1 Räuber pro ~50 Beute)
-	EnergyPerKill    float32 `toml:"energy_per_kill"`   // Default: 40.0 (80% von ReproductionReserve=50)
-	ReproThreshold   float32 `toml:"repro_threshold"`   // Default: 120.0 (> Herbivore-Threshold=100; mind. 3 Kills bis Reproduktion)
-	ReproReserve     float32 `toml:"repro_reserve"`     // Default: 60.0 (Startenergie des Kindes = 1.5 Kills)
+	EnergyPerKill    float32 `toml:"energy_per_kill"`   // Default: 8.0 (Kills nötig bis Repro ≈ ReproEnergy/EnergyPerKill = 300/8 ≈ 38)
+	ReproThreshold   float32 `toml:"repro_threshold"`   // Default: 360.0 (ReproEnergy=300 → ~38 erfolgreiche Kills bis Reproduktion)
+	ReproReserve     float32 `toml:"repro_reserve"`     // Default: 60.0 (Startenergie des Kindes)
 }
 
 // GeneDef beschreibt ein Gen: Wertebereich und Mutationsparameter.
@@ -102,8 +102,8 @@ func DefaultConfig() Config {
 
 		Predator: PredatorConfig{
 			InitialPredators: 10,
-			EnergyPerKill:    40.0,
-			ReproThreshold:   120.0,
+			EnergyPerKill:    8.0,
+			ReproThreshold:   360.0,
 			ReproReserve:     60.0,
 		},
 

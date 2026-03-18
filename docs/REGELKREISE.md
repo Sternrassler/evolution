@@ -200,24 +200,62 @@ In realen Ökosystemen liegt das Räuber-Beute-Verhältnis bei 1:10 bis 1:100
 2 % entsprechen dem unteren Ende dieses Bereichs — bewusst konservativ,
 damit die Räuber-Population nicht sofort kollabiert, bevor Lotka-Volterra-Schwingungen entstehen können.
 
+### Kill-Wahrscheinlichkeit
+
+```
+P(Kill) = GeneAggression  ∈ [0, 1]
+```
+
+Ein Jagdversuch gelingt nur mit Wahrscheinlichkeit `GeneAggression`. Bei Misserfolg
+(oder keiner Beute in Sichtweite) führt der Räuber einen Random Walk aus.
+
+Effektive Kill-Rate pro Tick und Räuber:
+```
+β_eff = GeneAggression × (Suchfläche / Weltfläche)
+      ≈ 0.5 × (400 / 40.000) = 0.005 Kills/Tick  (bei Durchschnitts-Aggression)
+```
+
+**Evolutionsdruck:** Räuber mit zu niedriger Aggression verhungern. Räuber mit zu hoher
+Aggression overhunten die Beute und kollabieren anschließend selbst. Evolution pendelt
+sich auf eine mittlere Aggression ein.
+
 ### Energie-Transfer
 
 ```
-EnergyPerKill = 40.0
+EnergyPerKill = 8.0
 ```
 
-Ein Herbivore startet mit `ReproductionReserve = 50` E. Der Räuber erhält 80 % davon —
-der Rest geht als Jagdaufwand verloren. Entspricht einem realistischen Trophie-Transfer-Wert.
+Geringer Energiegewinn pro Kill — Räuber brauchen viele Kills um zu überleben und
+sich zu reproduzieren. Dies dämpft den Populationsboom.
 
 ### Reproduktionsschwelle
 
 ```
-ReproThreshold = 120.0  >  Herbivore-Threshold = 100.0
+ReproThreshold = 360.0  (ReproReserve = 60.0 → ReproEnergy = 300)
 ```
 
-Räuber brauchen mehr Energie zur Reproduktion (höherer Körperaufwand, seltenere Beute).
-Bei `EnergyPerKill = 40.0` bedeutet das mindestens 3 erfolgreiche Kills seit dem letzten
-Reproduktionsereignis.
+Kills bis zur Reproduktion ab Startenergie (Durchschnitt, β_eff = 0.005):
+```
+ReproEnergy / EnergyPerKill = 300 / 8 ≈ 38 erfolgreiche Kills
+Ticks bis Repro ≈ 38 / 0.5 = 76 Ticks  (bei avg. Aggression und vollem Beuteangebot)
+```
+
+### Gleichgewicht (Lotka-Volterra)
+
+```
+H* = γ / (δ × β_eff)
+P* = α / β_eff
+
+γ = Sterberate ohne Beute  = 1.06/60  ≈ 0.018
+δ = Repro-Effizienz        = 8/300    ≈ 0.027   (EnergyPerKill / ReproEnergy)
+β_eff = eff. Kill-Rate     = 0.5×0.01 = 0.005   (avg. Aggression × Suchfläche)
+α = Herbivoren-Wachstum    ≈ 0.04/Tick
+
+H* = 0.018 / (0.027 × 0.005) ≈ 133 Herbivoren
+P* = 0.04  / 0.005           ≈ 8   Räuber
+```
+
+Die Startzustände (H=500, P=10) liegen nahe am Gleichgewicht → gedämpfte L-V-Schwingungen.
 
 ### Rückkopplung (negativ — stabilisierend)
 
@@ -226,10 +264,10 @@ Viele Räuber → viele Kills → wenige Herbivoren →
 Räuber verhungern → wenige Räuber → Herbivoren erholen sich → …
 ```
 
-**GeneAggression-Selektion:**
-Herbivore mit hoher `GeneAggression` fliehen effektiver (`EventFlee`) →
-überleben häufiger → reproduzieren sich häufiger →
-`GeneAggression` steigt unter Räuber-Druck in der Herbivoren-Population.
+**GeneAggression-Evolution:**
+Räuber mit zu niedriger Aggression finden keine Beute und verhungern.
+Räuber mit zu hoher Aggression overhunten die Beute und sterben nachfolgend.
+Selektion pendelt GeneAggression auf einen stabilen Mittelwert ein.
 
 ---
 
@@ -299,6 +337,7 @@ Bei Nahrungsknappheit dominiert **GeneEfficiency**, unter Räuber-Druck steigt *
 | `RecoverThreshold` | 0.50 | Verwüstung | Untergrenze Füllstand → Wiese |
 | `MaxPopulation` | 10.000 | Alle | Hartes Populationslimit |
 | `Predator.InitialPredators` | 10 | Räuber-Beute | Startzahl Räuber (~2% von InitialPop; Energiepyramide) |
-| `Predator.EnergyPerKill` | 40.0 | Räuber-Beute | Energiegewinn pro Kill (80% von ReproductionReserve) |
-| `Predator.ReproThreshold` | 120.0 | Räuber-Beute | Reproduktionsschwelle Räuber (mind. 3 Kills) |
-| `Predator.ReproReserve` | 60.0 | Räuber-Beute | Startenergie Räuber-Kind (= 1.5 Kills) |
+| `Predator.EnergyPerKill` | 8.0 | Räuber-Beute | Energiegewinn pro erfolgreichem Kill |
+| `Predator.ReproThreshold` | 360.0 | Räuber-Beute | Reproduktionsschwelle Räuber (~38 Kills bis Repro) |
+| `Predator.ReproReserve` | 60.0 | Räuber-Beute | Startenergie Räuber-Kind |
+| `GeneAggression` | [0, 1] | Räuber-Beute | Kill-Wahrscheinlichkeit pro Jagdversuch (avg 0.5) |
