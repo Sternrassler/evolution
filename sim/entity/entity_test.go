@@ -8,8 +8,8 @@ import (
 )
 
 func TestGeneKeyConstants(t *testing.T) {
-	if NumGenes != 3 {
-		t.Errorf("NumGenes = %d, want 3", NumGenes)
+	if NumGenes != 4 {
+		t.Errorf("NumGenes = %d, want 4", NumGenes)
 	}
 	if GeneSpeed != 0 {
 		t.Errorf("GeneSpeed = %d, want 0", GeneSpeed)
@@ -19,6 +19,9 @@ func TestGeneKeyConstants(t *testing.T) {
 	}
 	if GeneEfficiency != 2 {
 		t.Errorf("GeneEfficiency = %d, want 2", GeneEfficiency)
+	}
+	if GeneAggression != 3 {
+		t.Errorf("GeneAggression = %d, want 3", GeneAggression)
 	}
 }
 
