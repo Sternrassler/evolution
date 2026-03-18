@@ -8,7 +8,7 @@ world_height   = 200
 
 # --- Population ---
 max_population = 10000
-initial_pop    = 800     # mehr Startbeute → L-V-Schwingungen starten höher
+initial_pop    = 500     # Gleichgewichtsnähe ~320 → kein Überschuss-Crash
 
 ticks_per_second = 20
 
@@ -27,9 +27,9 @@ recover_threshold   = 0.50
 
 # --- Räuber ---
 [predator]
-initial_predators = 25      # mehr Startpopulation → Puffer gegen stochastisches Aussterben
-energy_per_kill   = 10.0    # (war 5.0) mehr Energie pro Kill → überlebt Phasen mit wenig Beute
-repro_threshold   = 250.0   # (war 360.0) erste Reproduktion bei ~63 erfolgreichen Kills
+initial_predators = 18      # Puffer gegen stochastische Extinction ohne Überjagd
+energy_per_kill   = 7.0     # moderat höher als 5.0 → überlebt Hungerperioden
+repro_threshold   = 340.0   # nah am Original → langsames Wachstum, kein Populationsboom
 repro_reserve     = 60.0    # Startenergie Räuber-Kind
 max_sight         = 20      # 2× Herbivore-Sichtweite
 
