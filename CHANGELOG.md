@@ -5,6 +5,10 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `sim/sim.go`: `applyPhase2` — Räuber greifen keine anderen Räuber (inkl. sich selbst) an; `EntityType`-Check verhindert Selbst- und Räuber-auf-Räuber-Angriffe die zuvor zur sofortigen Dezimierung der Räuber-Population führten
+
 ### Added
 
 - `render/renderer.go`: Predatoren werden in `renderIndividuals()` rot (255, 60, 60) gezeichnet; Herbivoren behalten gen-basierte Färbung (ViewBiom)

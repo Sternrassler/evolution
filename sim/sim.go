@@ -380,6 +380,9 @@ func (s *Simulation) applyPhase2(cfg config.Config, globalRefs []globalRef) Tick
 		if !ref.part.Alive[ref.soaIdx] {
 			continue // Beute bereits tot
 		}
+		if ref.part.EntityType[ref.soaIdx] != entity.Herbivore {
+			continue // Räuber greift keine Räuber an (inkl. sich selbst)
+		}
 		// Beute töten
 		stats.EnergyLostToDeath += ref.part.Energy[ref.soaIdx]
 		ref.part.MarkDead(ref.soaIdx)
