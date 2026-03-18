@@ -7,6 +7,14 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ### Added
 
+- `sim/sim_test.go`: 6 neue Integrationstests (fehlende Testpyramiden-Ebenen):
+  - `TestNoDuplicateIDs` — Partition-Sync via `DebugIntegrity=true`
+  - `TestNoWaterIndividuals` — räumliche Konsistenz: kein Individuum auf Wasser
+  - `TestSnapshotPopMatchesPartitions` — Snapshot-Population stimmt mit Partitionssumme überein
+  - `TestBoundaryCrossing` — Individuen überschreiten Partitionsgrenzen
+  - `TestFoodNeverNegative` — Tile-Nahrung wird durch Fressen nie negativ
+  - `TestEnergyRegrown_Nonnegative` — `EnergyRegrown` ist pro Tick nicht negativ
+
 - `README.md`: vollständig überarbeitet — Build-Anleitung, Steuerung, Ansichtsübersicht, aktueller Meilenstein-Status
 - `CONTRIBUTING.md`: für externe Beitragende überarbeitet — Schnelleinstieg, Merge-Kriterien, Anleitungen für neue Gene und ADRs
 - `.github/ISSUE_TEMPLATE/bug_report.md` + `feature_request.md`: strukturierte Issue-Vorlagen
