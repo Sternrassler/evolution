@@ -35,6 +35,10 @@ type Config struct {
 	ReproductionThreshold float32 `toml:"reproduction_threshold"`
 	ReproductionReserve   float32 `toml:"reproduction_reserve"`
 
+	// Nahrungsregrowth (Anteil von FoodMax pro Tick)
+	RegrowthMeadow float32 `toml:"regrowth_meadow"` // Default: 0.002
+	RegrowthDesert float32 `toml:"regrowth_desert"` // Default: 0.0005
+
 	// Gen-Definitionen
 	GeneDefinitions []GeneDef `toml:"gene_definitions"`
 }
@@ -74,6 +78,9 @@ func DefaultConfig() Config {
 		BaseEnergyCost:        0.5,
 		ReproductionThreshold: 100.0,
 		ReproductionReserve:   50.0,
+
+		RegrowthMeadow: 0.002,
+		RegrowthDesert: 0.0005,
 
 		GeneDefinitions: []GeneDef{
 			{Key: entity.GeneSpeed, Min: 0.5, Max: 3.0, MutationRate: 0.1, MutationStep: 0.1},

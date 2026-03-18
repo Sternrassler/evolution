@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
+	"github.com/Sternrassler/evolution/config"
 	"github.com/Sternrassler/evolution/sim"
 	"github.com/Sternrassler/evolution/sim/entity"
 )
@@ -18,7 +19,7 @@ type HUD struct{}
 func NewHUD() *HUD { return &HUD{} }
 
 // Draw zeichnet das HUD auf den Screen.
-func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot) {
+func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Config) {
 	if snap == nil {
 		return
 	}
@@ -33,6 +34,7 @@ func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot) {
 	ebitenutil.DebugPrint(screen, text)
 
 	drawLegend(screen)
+	drawParamsPanel(screen, cfg)
 }
 
 // drawLegend zeichnet eine Farblegende unten rechts.
@@ -91,6 +93,40 @@ func drawLegend(screen *ebiten.Image) {
 	for _, g := range genes {
 		vector.FillRect(screen, float32(tx), float32(ty), swatch, swatch, g.c, false)
 		ebitenutil.DebugPrintAt(screen, g.label, tx+swatch+4, ty)
+		ty += lineH
+	}
+}
+
+// drawParamsPanel zeichnet eine Simulations-Parameter-Übersicht unten links.
+func drawParamsPanel(screen *ebiten.Image, cfg config.Config) {
+	const (
+		boxW    = 190
+		boxH    = 120
+		padding = 6
+		lineH   = 14
+	)
+
+	x0 := float32(4)
+	y0 := float32(screen.Bounds().Dy() - boxH - 4)
+
+	vector.FillRect(screen, x0, y0, boxW, boxH, color.RGBA{0, 0, 0, 180}, false)
+
+	tx := int(x0) + padding
+	ty := int(y0) + padding
+
+	ebitenutil.DebugPrintAt(screen, "Parameter:", tx, ty)
+	ty += lineH
+
+	lines := []string{
+		fmt.Sprintf("Energie-Kosten:  %.2f/Tick", cfg.BaseEnergyCost),
+		fmt.Sprintf("Repro-Schwelle:  %.0f E", cfg.ReproductionThreshold),
+		fmt.Sprintf("Repro-Reserve:   %.0f E", cfg.ReproductionReserve),
+		fmt.Sprintf("Regrowth Wiese:  %.4f", cfg.RegrowthMeadow),
+		fmt.Sprintf("Regrowth Wüste:  %.4f", cfg.RegrowthDesert),
+		fmt.Sprintf("Max-Population:  %d", cfg.MaxPopulation),
+	}
+	for _, line := range lines {
+		ebitenutil.DebugPrintAt(screen, line, tx, ty)
 		ty += lineH
 	}
 }

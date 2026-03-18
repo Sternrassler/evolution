@@ -15,13 +15,6 @@ const (
 	BiomeDesert                  // langsames Nahrungswachstum
 )
 
-// BiomeRegrowthRate gibt die Nahrungsregrowth-Rate pro Tick pro Biom an.
-var BiomeRegrowthRate = [3]float32{
-	BiomeWater:  0.0,
-	BiomeMeadow: 0.05,
-	BiomeDesert: 0.01,
-}
-
 // Tile ist eine Zelle in der Simulationswelt.
 type Tile struct {
 	Biome   BiomeType
@@ -60,16 +53,23 @@ func (g *Grid) InBounds(x, y int) bool {
 }
 
 // ApplyRegrowth wächst Nahrung auf allen nicht-Wasser-Tiles nach.
+// meadowRate und desertRate sind Anteile von FoodMax pro Tick (aus config.Config).
 // Gibt die gesamte gewachsene Energie zurück (für TickStats.EnergyRegrown).
 // Diese Methode mutiert g.Tiles — nur in Phase 2 aufrufen.
-func (g *Grid) ApplyRegrowth() float32 {
+func (g *Grid) ApplyRegrowth(meadowRate, desertRate float32) float32 {
 	var total float32
 	for i := range g.Tiles {
 		t := &g.Tiles[i]
 		if t.Biome == BiomeWater {
 			continue
 		}
-		rate := BiomeRegrowthRate[t.Biome]
+		var rate float32
+		switch t.Biome {
+		case BiomeMeadow:
+			rate = meadowRate
+		case BiomeDesert:
+			rate = desertRate
+		}
 		if rate == 0 || t.Food >= t.FoodMax {
 			continue
 		}

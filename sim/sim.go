@@ -178,7 +178,7 @@ func (s *Simulation) Step() {
 	stats := s.applyPhase2(cfg)
 
 	// 6. Regrowth (nach Phase 2)
-	stats.EnergyRegrown = s.grid.ApplyRegrowth()
+	stats.EnergyRegrown = s.grid.ApplyRegrowth(cfg.RegrowthMeadow, cfg.RegrowthDesert)
 
 	// 7. Observer
 	s.observer.OnTick(s.tick, stats)

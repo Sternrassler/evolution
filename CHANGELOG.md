@@ -5,6 +5,16 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `ui/hud.go`: Parameter-Panel unten links — zeigt BaseEnergyCost, Repro-Schwelle/-Reserve, Regrowth-Raten und Max-Population
+- `config/config.go`: `RegrowthMeadow` (0.002) und `RegrowthDesert` (0.0005) als konfigurierbare Felder; `ApplyRegrowth` verwendet diese Werte statt interner Konstanten
+
+### Changed
+
+- Regrowth-Raten drastisch reduziert: Wiese 0.05→0.002, Wüste 0.01→0.0005 — Nahrung wächst jetzt wesentlich langsamer als eine mittelgroße Population frisst
+- `sim/world.ApplyRegrowth()` nimmt nun `meadowRate, desertRate float32` als Parameter (aus `config.Config`)
+
 ### Fixed
 
 - Energie-Drain fehlte: `applyPhase2` in `sim/sim.go` schreibt nun `BaseEnergyCost + speedGene*0.1` zurück auf SoA-Arrays; Individuen sterben jetzt korrekt an Energiemangel

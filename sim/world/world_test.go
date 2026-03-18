@@ -65,7 +65,7 @@ func TestApplyRegrowth_Budget(t *testing.T) {
 		foodBefore[i] = tile.Food
 	}
 
-	returned := g.ApplyRegrowth()
+	returned := g.ApplyRegrowth(0.05, 0.01)
 
 	var actualDelta float32
 	for i, tile := range g.Tiles {
@@ -87,7 +87,7 @@ func TestApplyRegrowth_Capped(t *testing.T) {
 	g.Tiles[0] = Tile{Biome: BiomeMeadow, Food: 9.9, FoodMax: 10.0}
 	g.Tiles[1] = Tile{Biome: BiomeDesert, Food: 19.8, FoodMax: 20.0}
 
-	g.ApplyRegrowth()
+	g.ApplyRegrowth(0.05, 0.01)
 
 	for i, tile := range g.Tiles {
 		if tile.Food > tile.FoodMax {
@@ -100,7 +100,7 @@ func TestApplyRegrowth_WaterSkipped(t *testing.T) {
 	g := NewGrid(1, 1)
 	g.Tiles[0] = Tile{Biome: BiomeWater, Food: 0.0, FoodMax: 10.0}
 
-	returned := g.ApplyRegrowth()
+	returned := g.ApplyRegrowth(0.05, 0.01)
 
 	if returned != 0.0 {
 		t.Errorf("Wasser-Tile sollte kein Wachstum haben, got %f", returned)
@@ -197,7 +197,7 @@ func TestApplyRegrowth_Property(t *testing.T) {
 			foodBefore[i] = tile.Food
 		}
 
-		returned := g.ApplyRegrowth()
+		returned := g.ApplyRegrowth(0.05, 0.01)
 
 		// Invariante: kein Free Energy — returned darf maximal der tatsächlichen Zunahme entsprechen
 		var maxPossible float32

@@ -58,7 +58,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	g.renderer.DrawBuffer(screen)
 	if snap != nil {
-		g.hud.Draw(screen, snap)
+		g.hud.Draw(screen, snap, g.cfg)
 	}
 }
 
