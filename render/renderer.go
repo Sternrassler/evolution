@@ -99,7 +99,12 @@ func (r *Renderer) renderIndividuals(snap *sim.WorldSnapshot) {
 		if x < 0 || x >= r.width || y < 0 || y >= r.height {
 			continue
 		}
-		ir, ig, ib := GeneColor(ind.Genes, defs)
+		var ir, ig, ib uint8
+		if ind.EntityType == entity.Predator {
+			ir, ig, ib = 255, 60, 60
+		} else {
+			ir, ig, ib = GeneColor(ind.Genes, defs)
+		}
 		cx := x*ts + ts/2
 		cy := y*ts + ts/2
 		pIdx := (cy*pw + cx) * 4
