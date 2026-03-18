@@ -7,5 +7,6 @@ const (
 	GeneSpeed      GeneKey = 0
 	GeneSight      GeneKey = 1
 	GeneEfficiency GeneKey = 2
-	NumGenes               = 3 // für Stufe 2 erhöhen → neuen case-Branch hinzufügen
+	GeneAggression GeneKey = 3
+	NumGenes               = 4 // für Stufe 3+ erhöhen → neuen case-Branch hinzufügen
 )

@@ -93,6 +93,7 @@ func DefaultConfig() Config {
 			{Key: entity.GeneSpeed, Min: 0.5, Max: 3.0, MutationRate: 0.1, MutationStep: 0.1},
 			{Key: entity.GeneSight, Min: 1.0, Max: 10.0, MutationRate: 0.1, MutationStep: 0.5},
 			{Key: entity.GeneEfficiency, Min: 0.5, Max: 2.0, MutationRate: 0.05, MutationStep: 0.05},
+			{Key: entity.GeneAggression, Min: 0.0, Max: 1.0, MutationRate: 0.05, MutationStep: 0.05},
 		},
 	}
 }

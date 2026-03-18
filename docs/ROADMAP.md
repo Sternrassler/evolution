@@ -1224,7 +1224,7 @@ func main() {
 | # | Titel | Abhängigkeiten |
 |---|---|---|
 | [#18](https://github.com/Sternrassler/evolution/issues/18) | ADR-011 — Predator-Agent-Architektur → [ADR-011](adr/ADR-011-predator-agent-architektur.md) ✅ | — |
-| [#3](https://github.com/Sternrassler/evolution/issues/3) | feat(entity): GeneAggression + EntityType | Blocked by #18 |
+| [#3](https://github.com/Sternrassler/evolution/issues/3) | feat(entity): GeneAggression + EntityType ✅ | Blocked by #18 |
 | [#4](https://github.com/Sternrassler/evolution/issues/4) | feat(entity): EventAttack + EventFlee | Blocked by #18 |
 | [#6](https://github.com/Sternrassler/evolution/issues/6) | feat(config): PredatorConfig-Felder | Blocked by #18 |
 | [#5](https://github.com/Sternrassler/evolution/issues/5) | feat(predator): Predator-Agent implementieren | #18, #3, #4 |
