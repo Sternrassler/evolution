@@ -29,17 +29,18 @@ Eine biologisch inspirierte Echtzeit-Simulation, die grundlegende Prinzipien von
 
 ---
 
-## Gene (MVP)
+## Gene
 
-Jedes Individuum trägt einen **Genotyp** mit zunächst 3 Genen:
+Jedes Individuum trägt einen **Genotyp** mit 4 Genen:
 
 | Gen | Wertebereich | Effekt | Trade-off |
 |---|---|---|---|
-| `speed` | 0.5 – 5.0 | Mehr Tiles pro Tick | Höherer Energieverbrauch |
+| `speed` | 0.5 – 3.0 | Mehr Tiles pro Tick | Höherer Energieverbrauch |
 | `sight` | 1 – 10 | Sichtradius für Nahrung | Kostet nichts direkt, aber rechenintensiv |
-| `efficiency` | 0.3 – 2.0 | Energieausbeute aus Nahrung | — |
+| `efficiency` | 0.5 – 2.0 | Energieausbeute aus Nahrung | — |
+| `aggression` | 0.0 – 1.0 | Räuber: Kill-Wahrscheinlichkeit + Jagdradius; Herbivore: Evolutionsdruck durch Räuber | Zu hoch → overhunting; zu niedrig → verhungern |
 
-**Visualisierung:** Farbe des Individuums kodiert den Genotyp (R=Speed, G=Sight, B=Efficiency). Populationsverschiebungen werden so als Farbveränderung sichtbar.
+**Visualisierung:** Farbe der Herbivoren kodiert den Genotyp (R=Speed, G=Sight, B=Efficiency). Räuber erscheinen einheitlich rot. Populationsverschiebungen werden als Farbveränderung sichtbar.
 
 ---
 
@@ -67,13 +68,23 @@ Nahrung wächst pro Tick nach (Rate abhängig vom Biom). Knappheit erzeugt Selek
 
 ### Tick-Ablauf (pro Individuum)
 
+**Herbivore:**
 ```
-1. Alter +1
-2. Energie abziehen (Basis + Speed-Kosten)
-3. Energie ≤ 0 oder Alter > Max → Tod
-4. Bewegen (in Richtung bester Nahrung im Sichtradius, sonst zufällig)
-5. Nahrung fressen (aktuelles Tile)
-6. Energie > Schwelle + Reserve → Fortpflanzung (Mutation)
+1. Energie abziehen (Basis + Speed-Kosten)
+2. Energie ≤ 0 → Tod
+3. Bewegen (in Richtung bester Nahrung im Sichtradius, sonst zufällig)
+4. Nahrung fressen (aktuelles Tile)
+5. Energie > Schwelle + Reserve → Fortpflanzung (Mutation)
+```
+
+**Räuber:**
+```
+1. Energie abziehen (Basis + Speed-Kosten; teurer als Herbivore)
+2. Energie ≤ 0 → Tod
+3. Herbivore im Jagdradius suchen (skaliert mit GeneAggression × MaxSight)
+4. Jagdversuch mit P(Kill) = GeneAggression → EventAttack (Energiegewinn pro Kill)
+5. Kein Ziel oder Jagd gescheitert → Random Walk
+6. Energie > ReproThreshold → Fortpflanzung
 ```
 
 ### Parallelisierung
@@ -115,8 +126,8 @@ Nahrung wächst pro Tick nach (Rate abhängig vom Biom). Knappheit erzeugt Selek
 ### Stufe 1 — MVP
 Einzelne Tierart, Nahrung als einziger Selektionsdruck, 3 Biome, Grunddarstellung
 
-### Stufe 2 — Räuber & Beute
-Zweite Tierart (Räuber), Flucht-/Jagdverhalten, neue Gene (z.B. `aggression`)
+### Stufe 2 — Räuber & Beute ✅
+Zweite Tierart (Räuber), Jagdverhalten, `GeneAggression`, Lotka-Volterra-Dynamik
 
 ### Stufe 3 — Umweltbedingungen
 Temperatur, Jahreszeiten, Katastrophen als zusätzlicher Druck

@@ -1,7 +1,7 @@
 # Evolution Simulation — Implementierungs-Roadmap
 
 > Basis: [CONCEPT.md](./CONCEPT.md) + [ARCHITECTURE.md](./ARCHITECTURE.md)
-> Stand: 2026-03-18 · Status: MVP vollständig (M0–M10 ✅), Post-MVP Erweiterungen teilweise umgesetzt
+> Stand: 2026-03-18 · Status: M0–M11 ✅, Post-MVP Erweiterungen teilweise umgesetzt
 
 ---
 
@@ -1236,9 +1236,13 @@ func main() {
 |---|---|
 | `sim/entity/gene.go` | `GeneAggression GeneKey = 3`, `NumGenes = 4` |
 | `sim/entity/individual.go` | Neues Feld `EntityType` (Herbivore/Predator) |
-| `sim/entity/event.go` | Neuer `EventAttack`, `EventFlee` |
+| `sim/entity/event.go` | Neuer `EventAttack` |
 | `sim/predator/predator.go` | `State`-Value-Type + `Tick(State, ctx, out)`-Funktion (ADR-011) |
-| `config/config.go` | Neue `PredatorConfig`-Felder |
+| `config/config.go` | `PredatorConfig` mit `InitialPredators`, `EnergyPerKill`, `ReproThreshold`, `ReproReserve`, `MaxSight` |
+| `sim/partition/worker.go` | `RunPredatorPhase1()` — Räuber-Tick sequentiell |
+| `sim/sim.go` | `applyPhase2`: `EventAttack`-Auflösung, EntityType-Guard |
+| `render/renderer.go` | Räuber-Darstellung rot (255,60,60) in Biom-View |
+| `ui/hud.go` | Räuber-Statistik, 4. Chart-Linie (rot), Legende |
 
 ### Implementierungsdetails
 
@@ -1278,11 +1282,11 @@ EventFlee    EventType = 5   // Herbivore flieht
 
 ### Akzeptanzkriterien M11
 
-- [ ] Räuber-Population entsteht und überlebt
-- [ ] Räuber-Beute-Dynamik sichtbar (Lotka-Volterra-ähnliche Schwingung)
-- [ ] Herbivore-`GeneAggression` evolviert sichtbar unter Räuber-Druck
-- [ ] `go test -race ./...` grün
-- [ ] Alle CI-Gates weiterhin grün
+- [x] Räuber-Population entsteht und überlebt
+- [x] Räuber-Beute-Dynamik sichtbar (Lotka-Volterra-ähnliche Schwingung)
+- [x] Herbivore-`GeneAggression` evolviert sichtbar unter Räuber-Druck
+- [x] `go test -race ./...` grün
+- [x] Alle CI-Gates weiterhin grün
 
 ---
 

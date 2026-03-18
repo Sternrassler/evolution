@@ -24,12 +24,12 @@ Vier Ansichten zeigen verschiedene Aspekte der laufenden Simulation:
 
 | Taste | Ansicht | Was man sieht |
 |---|---|---|
-| `1` | **Biom** | Geländetyp, Nahrungsfüllstand, Individuen als Farbpunkte |
+| `1` | **Biom** | Geländetyp, Nahrungsfüllstand, Individuen als Farbpunkte — **Räuber erscheinen rot** |
 | `2` | **Dichte** | Populationsdichte pro Tile als Heatmap (schwarz → rot → gelb) |
 | `3` | **Genotyp** | Ø Genwerte pro Tile als RGB — Rot = Speed, Grün = Sight, Blau = Effizienz |
 | `4` | **Nahrung** | Nahrungsfüllstand biomunabhängig (dunkel = leer, grün = voll) |
 
-Rechts: Statistiken, aktiver Modus und Legende. Unten: Verlaufsdiagramm — Population, Nahrung und Verwüstung seit Simulationsstart.
+Rechts: Statistiken (Population, Geburten/Tode, **Räuber-Anzahl, Kills**), aktiver Modus und Legende. Unten: Verlaufsdiagramm — Population, Nahrung, Verwüstung und **Räuber-Anteil** seit Simulationsstart.
 
 ---
 
@@ -95,7 +95,7 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/CONCEPT.md`](d
 | M1–M4 | entity, config, world, gen | ✅ |
 | M5–M7 | testutil, partition, sim | ✅ |
 | M8–M10 | render, ui, cmd — **MVP** | ✅ |
-| M11 | Räuber & Beute | geplant |
+| M11 | Räuber & Beute | ✅ |
 | M12 | Umweltbedingungen | geplant |
 | M13 | Karten-Editor | geplant |
 | M14 | Detailansicht / Stammbaum | geplant |
