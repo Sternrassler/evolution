@@ -7,6 +7,12 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ### Added
 
+- `README.md`: vollständig überarbeitet — Build-Anleitung, Steuerung, Ansichtsübersicht, aktueller Meilenstein-Status
+- `CONTRIBUTING.md`: für externe Beitragende überarbeitet — Schnelleinstieg, Merge-Kriterien, Anleitungen für neue Gene und ADRs
+- `.github/ISSUE_TEMPLATE/bug_report.md` + `feature_request.md`: strukturierte Issue-Vorlagen
+- `.github/PULL_REQUEST_TEMPLATE.md`: PR-Checkliste mit CI, CHANGELOG, Import-Prüfung
+- `CLAUDE.md`: öffentlicher Hinweis auf KI-Arbeitsweise ergänzt
+
 - `docs/adr/ADR-010`: ViewMode — umschaltbare Kartenansichten statt Zoom-Dispatch; ADR-009 mit Nachtrag versehen
 - `docs/GLOSSAR.md`: neue Einträge `ViewMode` und `Verwüstung`; `TickStats`-Eintrag um `AvgFoodPct`, `DesertTiles`, `LandTiles` erweitert
 - `docs/ROADMAP.md`: Status auf MVP vollständig (M0–M10 ✅) aktualisiert; Post-MVP-Erweiterungen dokumentiert
