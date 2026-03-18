@@ -8,7 +8,8 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 ### Fixed
 
 - Energie-Drain fehlte: `applyPhase2` in `sim/sim.go` schreibt nun `BaseEnergyCost + speedGene*0.1` zurück auf SoA-Arrays; Individuen sterben jetzt korrekt an Energiemangel
-- `BaseEnergyCost` von 1.0 auf 3.0 erhöht, damit der Selektionsdruck spürbar bleibt
+- `BaseEnergyCost` von 1.0 auf 3.0 erhöht, dann nach Beobachtung auf 0.5 korrigiert (3.0 ließ Population auf ~25 kollabieren)
+- **Race Condition auf `s.rng`**: Phase-1-Goroutinen teilten sich den RNG ohne Mutex → korrupte Positionen, alle sammelten sich in der linken oberen Ecke. Behoben mit `lockedRandSource` (Mutex-Wrapper) für Phase 1; Phase 2 verwendet weiterhin den ungeschützten `s.rng` (sequentiell)
 
 ### Added
 

@@ -15,6 +15,24 @@ import (
 // Compile-time check: worldContextImpl muss world.WorldContext implementieren.
 var _ world.WorldContext = (*worldContextImpl)(nil)
 
+// lockedRandSource schützt einen RandSource mit einem Mutex für parallelen Zugriff in Phase 1.
+type lockedRandSource struct {
+	mu  sync.Mutex
+	rng RandSource
+}
+
+func (l *lockedRandSource) Float64() float64 {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.rng.Float64()
+}
+
+func (l *lockedRandSource) Intn(n int) int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.rng.Intn(n)
+}
+
 // Simulation orchestriert alle Partitionen und den Tick-Ablauf.
 type Simulation struct {
 	cfg        config.Config
@@ -27,10 +45,11 @@ type Simulation struct {
 	partitions  []*partition.Partition
 	nextID      uint64
 
-	tick     uint64
-	observer TickObserver
-	exporter *SnapshotExporter
-	rng      RandSource
+	tick      uint64
+	observer  TickObserver
+	exporter  *SnapshotExporter
+	rng       RandSource       // für Phase 2 (sequentiell)
+	phase1Rng *lockedRandSource // für Phase 1 (parallel)
 }
 
 // New erstellt eine neue Simulation. rng wird für Weltgenerierung und Phase 2 verwendet.
@@ -64,6 +83,7 @@ func New(cfg config.Config, rng RandSource, observer TickObserver) (*Simulation,
 		observer:    observer,
 		exporter:    exporter,
 		rng:         rng,
+		phase1Rng:   &lockedRandSource{rng: rng},
 	}
 
 	// Initiale Population
@@ -209,11 +229,12 @@ func (s *Simulation) copyGhostRows(_ config.Config) {
 }
 
 // newWorldContext erstellt einen WorldContext für eine Partition.
+// Verwendet phase1Rng (mutex-geschützt) statt s.rng, da Phase 1 parallel läuft.
 func (s *Simulation) newWorldContext(_ *partition.Partition, cfg config.Config) *worldContextImpl {
 	return &worldContextImpl{
 		grid:        s.grid,
 		spatialGrid: s.spatialGrid,
-		rng:         s.rng,
+		rng:         s.phase1Rng,
 		cfg:         cfg,
 		nearBuf:     make([]int32, 0, 32),
 	}
