@@ -19,6 +19,7 @@ type State struct {
 	Genes          [entity.NumGenes]float32
 	ReproThreshold float32 // aus config.PredatorConfig.ReproThreshold
 	ReproReserve   float32 // aus config.PredatorConfig.ReproReserve
+	MaxSight       int32   // aus config.PredatorConfig.MaxSight (Räuber-spezifisch, > Herbivore-Sicht)
 }
 
 // Tick führt den Predator-Schritt aus: Jagd, Random Walk, Reproduktion.
@@ -52,9 +53,9 @@ func Tick(s State, ctx world.WorldContext, out *entity.EventBuffer) {
 		return
 	}
 
-	// Jagdradius: GeneAggression skaliert den Sichtradius [1, MaxSight]
-	// Höhere Aggression → größerer Jagdradius
-	sightRadius := max(1, int(aggressionGene*ctx.MaxSight()+0.5))
+	// Jagdradius: GeneAggression skaliert den Sichtradius [1, Predator.MaxSight]
+	// Predatoren haben größere Sichtweite als Herbivore (s.MaxSight > GlobalMaxSight).
+	sightRadius := max(1, int(aggressionGene*float32(s.MaxSight)+0.5))
 
 	// Beute suchen — IndividualsNear gibt SoA-Indizes zurück (zero-alloc via ctx-internen Buffer)
 	nearby := ctx.IndividualsNear(pos, sightRadius)

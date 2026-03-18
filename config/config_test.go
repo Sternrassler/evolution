@@ -195,6 +195,7 @@ func TestValidate_ValidConfigs(t *testing.T) {
 		predReproThreshold := rapid.Float32Range(1.0, 500.0).Draw(rt, "predReproThreshold")
 		predReproReserve := rapid.Float32Range(0.1, predReproThreshold-0.1).Draw(rt, "predReproReserve")
 		predInitial := rapid.IntRange(0, 1000).Draw(rt, "predInitial")
+		predMaxSight := rapid.IntRange(1, 100).Draw(rt, "predMaxSight")
 
 		cfg := Config{
 			WorldWidth:            worldWidth,
@@ -215,6 +216,7 @@ func TestValidate_ValidConfigs(t *testing.T) {
 				EnergyPerKill:    predEnergyPerKill,
 				ReproThreshold:   predReproThreshold,
 				ReproReserve:     predReproReserve,
+				MaxSight:         predMaxSight,
 			},
 			GeneDefinitions: geneDefs,
 		}

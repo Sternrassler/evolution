@@ -5,6 +5,12 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `config/config.go`: `Predator.MaxSight int` — räuber-spezifische Sichtweite unabhängig von `MaxSightRange` der Herbivoren (Default: 20, doppelte Reichweite); senkt kritische Herbivoren-Dichte H_krit von 31 auf 14 → Räuber überleben bei spärlicher Verteilung der Beute
+- `sim/predator/predator.go`, `sim/partition/worker.go`, `sim/sim.go`: `State.MaxSight` — Räuber-Tick verwendet `Predator.MaxSight` statt globalem `ctx.MaxSight()`; Suchfläche wächst von 400 auf 900 Tiles (3×3 Zellen)
+- `config/config_test.go`: `predMaxSight`-Generator im Property-Test ergänzt
+
 ### Fixed
 
 - `sim/predator/predator.go`: Kill-Wahrscheinlichkeit = `GeneAggression` eingeführt — Räuber töten Beute nicht mehr deterministisch jeden Tick; bei Jagdmisserfolg oder keiner Beute in Sichtweite wird Random Walk ausgeführt (behebt auch Stagnation wenn nur Räuber in der Nähe). Lotka-Volterra-Gleichgewicht: H*≈133, P*≈8
