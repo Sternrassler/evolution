@@ -29,21 +29,23 @@ const (
 // historyBuffer wächst dynamisch — speichert den gesamten Simulationsverlauf.
 // Beim Zeichnen wird auf die Chartbreite downgesampelt.
 type historyBuffer struct {
-	pop    []float32
-	food   []float32
-	desert []float32
+	pop       []float32
+	food      []float32
+	desert    []float32
+	predators []float32
 }
 
-func (h *historyBuffer) push(pop, food, desert float32) {
+func (h *historyBuffer) push(pop, food, desert, predators float32) {
 	h.pop = append(h.pop, pop)
 	h.food = append(h.food, food)
 	h.desert = append(h.desert, desert)
+	h.predators = append(h.predators, predators)
 }
 
 func (h *historyBuffer) count() int { return len(h.pop) }
 
-func (h *historyBuffer) at(i int) (pop, food, desert float32) {
-	return h.pop[i], h.food[i], h.desert[i]
+func (h *historyBuffer) at(i int) (pop, food, desert, predators float32) {
+	return h.pop[i], h.food[i], h.desert[i], h.predators[i]
 }
 
 // HUD verwaltet Seitenleiste und Verlaufsdiagramm.
@@ -68,10 +70,12 @@ func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Con
 	if maxPop == 0 {
 		maxPop = 1
 	}
+	predPct := float32(snap.Stats.Predators) / float32(maxPop) * 100
 	h.hist.push(
 		float32(snap.Stats.Population)/float32(maxPop)*100,
 		snap.Stats.AvgFoodPct,
 		float32(snap.Stats.DesertTiles)/float32(land)*100,
+		predPct,
 	)
 
 	h.drawSidebar(screen, snap, cfg, viewMode)
@@ -104,6 +108,7 @@ func (h *HUD) drawStats(screen *ebiten.Image, tx, ty int, snap *sim.WorldSnapsho
 		fmt.Sprintf("Tick:  %d", snap.Tick),
 		fmt.Sprintf("Pop:   %d", snap.Stats.Population),
 		fmt.Sprintf("Geb: %d  Tod: %d", snap.Stats.Births, snap.Stats.Deaths),
+		fmt.Sprintf("Räuber: %d  Kills: %d", snap.Stats.Predators, snap.Stats.Kills),
 		fmt.Sprintf("ØSpd:%.2f ØSgt:%.2f", avgSpeed, avgSight),
 		fmt.Sprintf("ØEff:%.2f", avgEff),
 	}
@@ -239,7 +244,7 @@ func (h *HUD) drawBottomChart(screen *ebiten.Image) {
 	// Trennlinie zur Karte
 	vector.FillRect(screen, cx, cy, cw, 1, color.RGBA{80, 80, 80, 255}, false)
 
-	const legendH = 3*lineH + 4
+	const legendH = 4*lineH + 4
 	const pad = 4
 	plotH := ch - float32(legendH) - float32(lineH) - float32(2*pad) // Platz für Header + Legende
 
@@ -286,8 +291,8 @@ func (h *HUD) drawBottomChart(screen *ebiten.Image) {
 	for i := 1; i < segments; i++ {
 		idx0 := idxOf((i - 1) * plotWi / segments)
 		idx1 := idxOf(i * plotWi / segments)
-		p0, f0, d0 := h.hist.at(idx0)
-		p1, f1, d1 := h.hist.at(idx1)
+		p0, f0, d0, pr0 := h.hist.at(idx0)
+		p1, f1, d1, pr1 := h.hist.at(idx1)
 		x0 := cx + float32(pad) + float32(i-1)*float32(plotWi)/float32(segments)
 		x1 := cx + float32(pad) + float32(i)*float32(plotWi)/float32(segments)
 
@@ -297,6 +302,8 @@ func (h *HUD) drawBottomChart(screen *ebiten.Image) {
 			color.RGBA{50, 200, 50, 255}, false)
 		vector.StrokeLine(screen, x0, yOf(d0), x1, yOf(d1), 1,
 			color.RGBA{200, 130, 30, 255}, false)
+		vector.StrokeLine(screen, x0, yOf(pr0), x1, yOf(pr1), 1,
+			color.RGBA{220, 60, 60, 255}, false)
 	}
 
 	h.drawChartLegend(screen, pad, int(plotY+plotH)+pad)
@@ -310,6 +317,7 @@ func (h *HUD) drawChartLegend(screen *ebiten.Image, pad, ty int) {
 		{color.RGBA{220, 200, 50, 255}, "Population (% von Max)"},
 		{color.RGBA{50, 200, 50, 255}, "Nahrung (Ø Füllstand %)"},
 		{color.RGBA{200, 130, 30, 255}, "Wüste (% der Land-Tiles)"},
+		{color.RGBA{220, 60, 60, 255}, "Räuber (% von Max)"},
 	} {
 		vector.FillRect(screen, float32(pad), float32(ty), swatchSize, swatchSize, e.c, false)
 		ebitenutil.DebugPrintAt(screen, e.l, pad+swatchSize+4, ty)

@@ -7,6 +7,9 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ### Added
 
+- `render/renderer.go`: Predatoren werden in `renderIndividuals()` rot (255, 60, 60) gezeichnet; Herbivoren behalten gen-basierte Färbung (ViewBiom)
+- `ui/hud.go`: Statistik-Zeile "Räuber: X  Kills: X" in Sidebar; `historyBuffer` + `push()` + `at()` um `predators []float32` erweitert; Chart zeigt 4. rote Linie (Räuber % von Max); Legende um Räuber-Eintrag ergänzt
+
 - `sim/partition/partition.go`: `EntityType []entity.EntityType` SoA-Array; `AddIndividual` und `ToIndividuals` setzen/erhalten EntityType (Issue #7)
 - `sim/partition/worker.go`: `RunPhase1` verarbeitet nur Herbivoren (parallel); `RunPredatorPhase1` verarbeitet Räuber sequentiell (deterministisch) — EntityType-Dispatch via `entity.Predator`-Check (Issue #7, ADR-011)
 - `sim/snapshot.go`: `TickStats.Predators int` (lebende Räuber) und `TickStats.Kills int` (Räuber-Kills pro Tick) (Issue #7)
