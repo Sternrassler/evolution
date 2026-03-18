@@ -53,9 +53,10 @@ type Config struct {
 // PredatorConfig enthält alle Räuber-spezifischen Simulations-Parameter.
 type PredatorConfig struct {
 	InitialPredators int     `toml:"initial_predators"` // Default: 10 (~2% von InitialPop; Energiepyramide: 1 Räuber pro ~50 Beute)
-	EnergyPerKill    float32 `toml:"energy_per_kill"`   // Default: 8.0 (Kills nötig bis Repro ≈ ReproEnergy/EnergyPerKill = 300/8 ≈ 38)
-	ReproThreshold   float32 `toml:"repro_threshold"`   // Default: 360.0 (ReproEnergy=300 → ~38 erfolgreiche Kills bis Reproduktion)
+	EnergyPerKill    float32 `toml:"energy_per_kill"`   // Default: 5.0 (Suchfläche 900 Tiles → häufigere Kills → geringerer Gewinn/Kill)
+	ReproThreshold   float32 `toml:"repro_threshold"`   // Default: 360.0 (ReproEnergy=300 → ~60 erfolgreiche Kills bis Reproduktion)
 	ReproReserve     float32 `toml:"repro_reserve"`     // Default: 60.0 (Startenergie des Kindes)
+	MaxSight         int     `toml:"max_sight"`         // Default: 20 (2× Herbivore-MaxSightRange; senkt H_krit von 31 auf 14)
 }
 
 // GeneDef beschreibt ein Gen: Wertebereich und Mutationsparameter.
@@ -102,9 +103,10 @@ func DefaultConfig() Config {
 
 		Predator: PredatorConfig{
 			InitialPredators: 10,
-			EnergyPerKill:    8.0,
+			EnergyPerKill:    5.0,
 			ReproThreshold:   360.0,
 			ReproReserve:     60.0,
+			MaxSight:         20,
 		},
 
 		GeneDefinitions: []GeneDef{
@@ -166,6 +168,9 @@ func (c *Config) Validate() error {
 	if c.Predator.ReproThreshold <= c.Predator.ReproReserve {
 		return fmt.Errorf("Predator.ReproThreshold (%f) muss > ReproReserve (%f) sein",
 			c.Predator.ReproThreshold, c.Predator.ReproReserve)
+	}
+	if c.Predator.MaxSight <= 0 {
+		return fmt.Errorf("Predator.MaxSight muss > 0 sein, ist %d", c.Predator.MaxSight)
 	}
 	if len(c.GeneDefinitions) != entity.NumGenes {
 		return fmt.Errorf("GeneDefinitions muss genau %d Einträge haben, hat %d", entity.NumGenes, len(c.GeneDefinitions))

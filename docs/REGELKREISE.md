@@ -200,6 +200,29 @@ In realen Ökosystemen liegt das Räuber-Beute-Verhältnis bei 1:10 bis 1:100
 2 % entsprechen dem unteren Ende dieses Bereichs — bewusst konservativ,
 damit die Räuber-Population nicht sofort kollabiert, bevor Lotka-Volterra-Schwingungen entstehen können.
 
+### Sensorik (Räuber-spezifisch)
+
+```
+Predator.MaxSight = 20  (vs. Herbivore MaxSightRange = 10)
+```
+
+Räuber haben doppelte Sichtweite gegenüber Herbivoren. Der Jagdradius skaliert:
+```
+sightRadius = max(1, int(GeneAggression × Predator.MaxSight + 0.5))
+           ∈ [1, 20]  (avg. 0.5 → radius = 10)
+```
+
+Suchfläche bei avg. Aggression (radius=10, CellSize=10, 3×3 Zellen à 100 Tiles):
+```
+Suchfläche = 900 Tiles  (vs. 400 Tiles mit MaxSight=10)
+```
+
+Kritische Herbivoren-Dichte H_krit (net-Energiegewinn = 0):
+```
+H_krit = -ln(0.735) / (Suchfläche/Weltfläche) ≈ 14 Herbivoren  (alt: 31)
+```
+Räuber können bei sehr spärlicher Verteilung der Beute (bis H≈14) noch überleben.
+
 ### Kill-Wahrscheinlichkeit
 
 ```
@@ -209,10 +232,10 @@ P(Kill) = GeneAggression  ∈ [0, 1]
 Ein Jagdversuch gelingt nur mit Wahrscheinlichkeit `GeneAggression`. Bei Misserfolg
 (oder keiner Beute in Sichtweite) führt der Räuber einen Random Walk aus.
 
-Effektive Kill-Rate pro Tick und Räuber:
+Effektive Kill-Rate pro Tick und Räuber bei H=300:
 ```
-β_eff = GeneAggression × (Suchfläche / Weltfläche)
-      ≈ 0.5 × (400 / 40.000) = 0.005 Kills/Tick  (bei Durchschnitts-Aggression)
+β_eff = GeneAggression × (1 − e^{−Suchfläche × H/Weltfläche})
+      ≈ 0.5 × (1 − e^{−0.0225 × 300}) ≈ 0.5 Kills/Tick
 ```
 
 **Evolutionsdruck:** Räuber mit zu niedriger Aggression verhungern. Räuber mit zu hoher
@@ -222,11 +245,11 @@ sich auf eine mittlere Aggression ein.
 ### Energie-Transfer
 
 ```
-EnergyPerKill = 8.0
+EnergyPerKill = 5.0
 ```
 
-Geringer Energiegewinn pro Kill — Räuber brauchen viele Kills um zu überleben und
-sich zu reproduzieren. Dies dämpft den Populationsboom.
+Geringer Energiegewinn pro Kill (reduziert gegenüber alter Version, da Räuber nun
+häufiger Beute finden). Dämpft den Populationsboom bei niedrigem Beuteangebot.
 
 ### Reproduktionsschwelle
 
@@ -234,10 +257,10 @@ sich zu reproduzieren. Dies dämpft den Populationsboom.
 ReproThreshold = 360.0  (ReproReserve = 60.0 → ReproEnergy = 300)
 ```
 
-Kills bis zur Reproduktion ab Startenergie (Durchschnitt, β_eff = 0.005):
+Kills bis zur Reproduktion ab Startenergie (Durchschnitt, β_eff ≈ 0.5):
 ```
-ReproEnergy / EnergyPerKill = 300 / 8 ≈ 38 erfolgreiche Kills
-Ticks bis Repro ≈ 38 / 0.5 = 76 Ticks  (bei avg. Aggression und vollem Beuteangebot)
+ReproEnergy / EnergyPerKill = 300 / 5 = 60 erfolgreiche Kills
+Ticks bis Repro ≈ 60 / 0.5 = 120 Ticks  (bei avg. Aggression und H≈300)
 ```
 
 ### Gleichgewicht (Lotka-Volterra)
@@ -340,4 +363,5 @@ Bei Nahrungsknappheit dominiert **GeneEfficiency**, unter Räuber-Druck steigt *
 | `Predator.EnergyPerKill` | 8.0 | Räuber-Beute | Energiegewinn pro erfolgreichem Kill |
 | `Predator.ReproThreshold` | 360.0 | Räuber-Beute | Reproduktionsschwelle Räuber (~38 Kills bis Repro) |
 | `Predator.ReproReserve` | 60.0 | Räuber-Beute | Startenergie Räuber-Kind |
-| `GeneAggression` | [0, 1] | Räuber-Beute | Kill-Wahrscheinlichkeit pro Jagdversuch (avg 0.5) |
+| `Predator.MaxSight` | 20 | Räuber-Beute | Räuber-spezifische Sichtweite (2× Herbivore); senkt H_krit von 31 auf 14 |
+| `GeneAggression` | [0, 1] | Räuber-Beute | Kill-Wahrscheinlichkeit pro Jagdversuch UND Sichtradius-Skalierung |

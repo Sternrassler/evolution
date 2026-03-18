@@ -25,8 +25,8 @@ func (p *Partition) RunPhase1(ctx world.WorldContext) {
 // RunPredatorPhase1 verarbeitet alle lebenden Räuber sequentiell.
 // Hängt Events an p.Buf an (kein Reset — herbivore Events bleiben erhalten).
 // Wird nach RunPhase1 aus dem Simulations-Koordinator aufgerufen (sequentiell, deterministisch).
-// predReproThreshold und predReproReserve kommen aus config.PredatorConfig.
-func (p *Partition) RunPredatorPhase1(ctx world.WorldContext, predReproThreshold, predReproReserve float32) {
+// predReproThreshold, predReproReserve und predMaxSight kommen aus config.PredatorConfig.
+func (p *Partition) RunPredatorPhase1(ctx world.WorldContext, predReproThreshold, predReproReserve float32, predMaxSight int32) {
 	for i := int32(0); i < int32(p.Len); i++ {
 		if !p.Alive[i] || p.EntityType[i] != entity.Predator {
 			continue
@@ -39,6 +39,7 @@ func (p *Partition) RunPredatorPhase1(ctx world.WorldContext, predReproThreshold
 			Genes:          p.Genes[i],
 			ReproThreshold: predReproThreshold,
 			ReproReserve:   predReproReserve,
+			MaxSight:       predMaxSight,
 		}
 		predator.Tick(s, ctx, &p.Buf)
 	}

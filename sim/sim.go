@@ -197,7 +197,7 @@ func (s *Simulation) Step() {
 	// 4b. Räuber-Phase-1 — sequentiell (deterministisch, s.rng ohne Mutex)
 	for _, p := range s.partitions {
 		ctx := s.newWorldContext(p, cfg, s.rng)
-		p.RunPredatorPhase1(ctx, cfg.Predator.ReproThreshold, cfg.Predator.ReproReserve)
+		p.RunPredatorPhase1(ctx, cfg.Predator.ReproThreshold, cfg.Predator.ReproReserve, int32(cfg.Predator.MaxSight))
 	}
 
 	// 5. Phase 2 — sequentiell
