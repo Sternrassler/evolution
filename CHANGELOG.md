@@ -5,6 +5,10 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `docs/REGELKREISE.md`: fachliche und mathematische Beschreibung aller Regelkreise (Energie, Nahrung, Verwüstung) inkl. Gleichgewichtsbedingungen, Wechselwirkungen und Parametertabelle
+
 ### Fixed
 
 - Diagramm: Nahrungskurve zeigte "Tiles mit Food > 0" (blieb nahe 100% trotz Verwüstung); ersetzt durch durchschnittlichen Füllstand `Food/FoodMax × 100` — fällt jetzt korrekt wenn Tiles verarmen

@@ -1,0 +1,243 @@
+# Regelkreise — Evolution Simulation
+
+Dieses Dokument beschreibt alle implementierten Regelkreise fachlich und mathematisch,
+so wie sie im Code tatsächlich umgesetzt sind. Parameternamen verweisen direkt auf `config.Config`.
+
+---
+
+## 1. Energiekreislauf (pro Individuum, pro Tick)
+
+### Verbrauch
+
+Jedes lebende Individuum zahlt pro Tick einen Energiebetrag, der von seinem Speed-Gen abhängt:
+
+```
+Kosten = BaseEnergyCost + GeneSpeed × 0.1
+```
+
+Standardwerte: `BaseEnergyCost = 0.5`, `GeneSpeed ∈ [0.5, 3.0]`
+→ Kosten liegen zwischen **0.55** und **0.80** pro Tick.
+
+### Nahrungsaufnahme
+
+Steht das Individuum auf einer Tile mit Nahrung, nimmt es bis zu 50 % des vorhandenen
+Nahrungsvorrats, maximal 2.0 Einheiten:
+
+```
+gegessen  = min(Tile.Food × 0.5,  2.0)
+Energiegewinn = gegessen × GeneEfficiency
+```
+
+`GeneEfficiency ∈ [0.5, 2.0]` → Gewinn zwischen **0** (kein Essen) und **4.0** pro Tick.
+
+### Netto-Energiebilanz
+
+```
+ΔE = Energiegewinn − Kosten
+```
+
+| Szenario | ΔE (Richtwert) |
+|---|---|
+| Frisst voll (Eff=2.0, Spd=0.5) | +3.45 |
+| Frisst voll (Eff=1.0, Spd=1.5) | +1.85 |
+| Frisst nicht | −0.55 bis −0.80 |
+
+### Tod
+
+Fällt die Energie auf ≤ 0, stirbt das Individuum:
+
+```
+wenn E(t+1) ≤ 0  →  Tod
+```
+
+Ohne Nahrung überlebt ein Individuum (Startenergie `ReproductionThreshold × 0.5 = 50`):
+
+```
+Überlebensticks ≈ 50 / Kosten  ≈  63–91 Ticks  (≈ 3–5 Sekunden bei 20 TPS)
+```
+
+### Reproduktion
+
+Überschreitet die Energie die Schwelle, erzeugt das Individuum ein Kind:
+
+```
+wenn E ≥ ReproductionThreshold (100):
+    E_Elter  -= ReproductionReserve (50)
+    E_Kind    = ReproductionReserve (50)
+    Gene_Kind = mutate(Gene_Elter)
+```
+
+Zeit bis zur ersten Reproduktion ab Startenergie 50 (kontinuierliches Fressen, ΔE = +2):
+
+```
+Ticks bis Repro ≈ (ReproductionThreshold − E_start) / ΔE_netto = 50 / 2 = 25 Ticks
+```
+
+**Rückkopplung:** Hohe Effizienz → schnellere Reproduktion → mehr Individuen →
+mehr Fraß → weniger Nahrung → Selektionsdruck auf Effizienz steigt.
+
+---
+
+## 2. Nahrungskreislauf (pro Tile, pro Tick)
+
+### Nachwuchs (Regrowth)
+
+Jede nicht-Wasser-Tile wächst pro Tick um einen Anteil ihres Maximums nach:
+
+```
+ΔFood = RegrowthRate × FoodMax
+Food(t+1) = min(Food(t) + ΔFood,  FoodMax)
+```
+
+| Biom | RegrowthRate | FoodMax | ΔFood/Tick |
+|---|---|---|---|
+| Wiese | `RegrowthMeadow = 0.002` | 10 | 0.02 |
+| Wüste | `RegrowthDesert = 0.0005` | 10* | 0.005 |
+
+*FoodMax bleibt beim Biomwechsel erhalten (siehe Verwüstungskreislauf).
+
+Vollständige Erholung einer leeren Wiese:
+
+```
+Ticks bis FoodMax = 1 / RegrowthMeadow = 500 Ticks  (25 Sekunden)
+```
+
+### Fraß (durch Population)
+
+Pro Tick entnimmt jedes Individuum auf der Tile:
+
+```
+gegessen = min(Food × 0.5,  2.0)
+Food(t+1) = Food(t) − Σ gegessen  (alle Individuen auf dieser Tile)
+```
+
+### Gleichgewichtsbedingung
+
+Eine Tile ist im Gleichgewicht wenn Nachwuchs = Fraß:
+
+```
+RegrowthMeadow × FoodMax = n × min(Food × 0.5,  2.0)
+```
+
+Bei vollem Bestand (`Food = FoodMax = 10`) und `n` Individuen:
+
+```
+0.002 × 10 = n × 2.0
+n_max = 0.1  →  weniger als 1 Individuum pro Tile für Gleichgewicht
+```
+
+Das bedeutet: **Eine Wiese kann dauerhaft genau ~0.1 Individuen ernähren.**
+Bei höherer Dichte verarmt die Tile und desertifiziert (→ Regelkreis 3).
+
+---
+
+## 3. Verwüstungskreislauf
+
+### Desertifizierung
+
+Eine Wiese wird zur Wüste wenn ihr Füllstand unter die Schwelle fällt:
+
+```
+wenn Biom == Wiese  UND  Food/FoodMax < DesertifyThreshold (0.05):
+    Biom → Wüste
+```
+
+### Erholung
+
+Eine Wüste erholt sich zur Wiese wenn genug Nahrung nachgewachsen ist:
+
+```
+wenn Biom == Wüste  UND  Food/FoodMax > RecoverThreshold (0.50):
+    Biom → Wiese
+```
+
+### Hysterese
+
+Die Schwellen sind asymmetrisch — das verhindert schnelles Hin- und Herwechseln:
+
+```
+Desertifizierung bei  Food < 0.05 × FoodMax  =  0.5
+Erholung         bei  Food > 0.50 × FoodMax  =  5.0
+```
+
+Eine desertifizierte Tile muss von ~0.5 auf 5.0 Nahrung anwachsen (bei Wüsten-Rate):
+
+```
+Ticks bis Erholung ≈ (5.0 − 0.5) / (RegrowthDesert × FoodMax) = 4.5 / 0.005 = 900 Ticks  (45 s)
+```
+
+**Rückkopplung (negativ — stabilisierend):**
+Hohe Population → starker Fraß → Tiles verarmen → Desertifizierung →
+weniger Nahrung verfügbar → Population sinkt → weniger Fraß → Erholung.
+
+---
+
+## 4. Wechselwirkungen und Gesamtsystem
+
+```
+        ┌─────────────────────────────────────────┐
+        │              POPULATION                  │
+        │   (+) Reproduktion wenn E ≥ Schwelle     │
+        │   (−) Tod wenn E ≤ 0                     │
+        └──────────┬──────────────────▲────────────┘
+                   │ Fraß             │ Energie
+                   ▼                  │
+        ┌──────────────────┐   ┌──────────────┐
+        │    NAHRUNG       │   │   ENERGIE    │
+        │ (+) Nachwuchs    │──▶│ (+) Fraß     │
+        │ (−) Fraß         │   │ (−) Kosten   │
+        └──────────┬───────┘   └──────────────┘
+                   │ Verarmung
+                   ▼
+        ┌──────────────────┐
+        │   VERWÜSTUNG     │
+        │ (+) bei Food<5%  │
+        │ (−) bei Food>50% │
+        └──────────┬───────┘
+                   │ senkt Nachwuchsrate (×0.25)
+                   └──────────────────────────────▶ NAHRUNG (−)
+```
+
+### Stabilitätsbedingung
+
+Das System ist stabil wenn die Population so groß ist, dass:
+
+```
+Fraß_gesamt ≤ Nachwuchs_gesamt
+N × 2.0 ≤ LandTiles × RegrowthMeadow × FoodMax
+N ≤ LandTiles × 0.002 × 10 / 2.0  =  LandTiles × 0.01
+```
+
+Bei ~32.000 Land-Tiles: **N_stabil ≤ 320 Individuen** (rein auf Wiesennachwuchs).
+
+In der Praxis liegt das beobachtete Gleichgewicht höher, weil:
+- Nicht alle Individuen gleichzeitig auf befüllten Tiles stehen
+- Wüsten-Tiles tragen ebenfalls (langsam) zur Nahrung bei
+- Tote Individuen sofort als Selektionsdruck wirken
+
+### Evolutionsdruck
+
+| Gen | Selektionsvorteil | Selektionsnachteil |
+|---|---|---|
+| GeneSpeed (hoch) | Erreicht Nahrung schneller | Höhere Energiekosten |
+| GeneSight (hoch) | Findet Nahrung in größerem Radius | Kein direkter Nachteil |
+| GeneEfficiency (hoch) | Mehr Energie pro Bissen | Kein direkter Nachteil |
+
+Bei Nahrungsknappheit dominiert **GeneEfficiency** die Selektion — Individuen mit
+höherer Effizienz überleben länger ohne Nahrung und reproduzieren sich häufiger
+bei gleichem Fraßerfolg.
+
+---
+
+## 5. Parametertabelle
+
+| Parameter | Wert | Regelkreis | Wirkung |
+|---|---|---|---|
+| `BaseEnergyCost` | 0.5 | Energie | Basisverbrauch pro Tick |
+| `ReproductionThreshold` | 100 | Energie | Energie für Reproduktion |
+| `ReproductionReserve` | 50 | Energie | Startenergie des Kindes |
+| `RegrowthMeadow` | 0.002 | Nahrung | Nachwuchsrate Wiese |
+| `RegrowthDesert` | 0.0005 | Nahrung | Nachwuchsrate Wüste |
+| `DesertifyThreshold` | 0.05 | Verwüstung | Untergrenze Füllstand → Wüste |
+| `RecoverThreshold` | 0.50 | Verwüstung | Untergrenze Füllstand → Wiese |
+| `MaxPopulation` | 10.000 | Alle | Hartes Populationslimit |
