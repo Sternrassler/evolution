@@ -165,6 +165,9 @@ func (r *Renderer) renderGenotyp(snap *sim.WorldSnapshot) {
 		if x < 0 || x >= r.width || y < 0 || y >= r.height {
 			continue
 		}
+		if ind.EntityType == entity.Predator {
+			continue // Räuber nicht in Gen-Durchschnitt einbeziehen
+		}
 		base := (y*r.width + x) * entity.NumGenes
 		for g := range entity.NumGenes {
 			r.geneSumBuf[base+g] += ind.Genes[g]
@@ -196,6 +199,30 @@ func (r *Renderer) renderGenotyp(snap *sim.WorldSnapshot) {
 				r.pixelBuf[pIdx+2] = ib
 				r.pixelBuf[pIdx+3] = 255
 			}
+		}
+	}
+	// Räuber als rote Mittelpixel überlagern
+	r.renderIndividualsPredatorOnly(snap, pw)
+}
+
+func (r *Renderer) renderIndividualsPredatorOnly(snap *sim.WorldSnapshot, pw int) {
+	ts := r.tileSize
+	for _, ind := range snap.Individuals {
+		if ind.EntityType != entity.Predator {
+			continue
+		}
+		x, y := ind.Pos.X, ind.Pos.Y
+		if x < 0 || x >= r.width || y < 0 || y >= r.height {
+			continue
+		}
+		cx := x*ts + ts/2
+		cy := y*ts + ts/2
+		pIdx := (cy*pw + cx) * 4
+		if pIdx+3 < len(r.pixelBuf) {
+			r.pixelBuf[pIdx] = 255
+			r.pixelBuf[pIdx+1] = 255
+			r.pixelBuf[pIdx+2] = 255
+			r.pixelBuf[pIdx+3] = 255
 		}
 	}
 }
