@@ -102,15 +102,20 @@ func (h *HUD) drawSidebar(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg con
 }
 
 func (h *HUD) drawStats(screen *ebiten.Image, tx, ty int, snap *sim.WorldSnapshot) int {
-	avgSpeed, avgSight, avgEff, avgAggr := avgGenes(snap.Individuals)
+	hSpd, hSgt, hEff, hAgg := avgGenes(snap.Individuals, entity.Herbivore)
+	pSpd, pSgt, pEff, pAgg := avgGenes(snap.Individuals, entity.Predator)
 	lines := []string{
 		"Statistik:",
 		fmt.Sprintf("Tick:  %d", snap.Tick),
 		fmt.Sprintf("Pop:   %d", snap.Stats.Population),
 		fmt.Sprintf("Geb: %d  Tod: %d", snap.Stats.Births, snap.Stats.Deaths),
 		fmt.Sprintf("Räuber: %d  Kills: %d", snap.Stats.Predators, snap.Stats.Kills),
-		fmt.Sprintf("ØSpd:%.2f ØSgt:%.2f", avgSpeed, avgSight),
-		fmt.Sprintf("ØEff:%.2f ØAgg:%.2f", avgEff, avgAggr),
+		"Ø Gene Pflanzenfresser:",
+		fmt.Sprintf(" Spd:%.2f Sgt:%.2f", hSpd, hSgt),
+		fmt.Sprintf(" Eff:%.2f Agg:%.2f", hEff, hAgg),
+		"Ø Gene Räuber:",
+		fmt.Sprintf(" Spd:%.2f Sgt:%.2f", pSpd, pSgt),
+		fmt.Sprintf(" Eff:%.2f Agg:%.2f", pEff, pAgg),
 	}
 	for _, l := range lines {
 		ebitenutil.DebugPrintAt(screen, l, tx, ty)
@@ -326,16 +331,20 @@ func (h *HUD) drawChartLegend(screen *ebiten.Image, pad, ty int) {
 	}
 }
 
-func avgGenes(inds []entity.Individual) (speed, sight, eff, aggression float32) {
-	if len(inds) == 0 {
-		return
-	}
+func avgGenes(inds []entity.Individual, filter entity.EntityType) (speed, sight, eff, aggression float32) {
+	var n float32
 	for _, ind := range inds {
+		if ind.EntityType != filter {
+			continue
+		}
 		speed += ind.Genes[entity.GeneSpeed]
 		sight += ind.Genes[entity.GeneSight]
 		eff += ind.Genes[entity.GeneEfficiency]
 		aggression += ind.Genes[entity.GeneAggression]
+		n++
 	}
-	n := float32(len(inds))
+	if n == 0 {
+		return
+	}
 	return speed / n, sight / n, eff / n, aggression / n
 }
