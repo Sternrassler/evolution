@@ -1,4 +1,12 @@
-.PHONY: test test-sim race bench lint ci
+.PHONY: test test-sim race bench lint ci build run
+
+build:
+	mkdir -p /tmp/extralibs
+	ln -sf /usr/lib/x86_64-linux-gnu/libXxf86vm.so.1 /tmp/extralibs/libXxf86vm.so
+	CGO_LDFLAGS="-L/tmp/extralibs" go build -o evolution ./cmd/evolution/
+
+run: build
+	./evolution
 
 # Alle Tests (braucht X11-Header für render/ui/cmd)
 test:

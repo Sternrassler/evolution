@@ -5,6 +5,16 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Energie-Drain fehlte: `applyPhase2` in `sim/sim.go` schreibt nun `BaseEnergyCost + speedGene*0.1` zurück auf SoA-Arrays; Individuen sterben jetzt korrekt an Energiemangel
+- `BaseEnergyCost` von 1.0 auf 3.0 erhöht, damit der Selektionsdruck spürbar bleibt
+
+### Added
+
+- `ui/hud.go`: Farblegende unten rechts — Geländetypen (Wiese/Wüste/Wasser) und Gen-Bedeutung (Rot=Speed, Grün=Sight, Blau=Effizienz) mit farbigen Swatches (`vector.FillRect`)
+- `Makefile`: `build`- und `run`-Targets mit X11-Linker-Workaround (`/tmp/extralibs`)
+
 ### Changed
 
 - `CONCEPT.md`, `ARCHITECTURE.md`, `ROADMAP.md` nach `docs/` verschoben; alle internen Links aktualisiert

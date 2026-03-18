@@ -2,15 +2,17 @@ package ui
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 
 	"github.com/Sternrassler/evolution/sim"
 	"github.com/Sternrassler/evolution/sim/entity"
 )
 
-// HUD zeigt Simulations-Statistiken im Fenster an.
+// HUD zeigt Simulations-Statistiken und eine Farblegende im Fenster an.
 type HUD struct{}
 
 func NewHUD() *HUD { return &HUD{} }
@@ -21,7 +23,6 @@ func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot) {
 		return
 	}
 
-	// Durchschnittsgene berechnen
 	avgSpeed, avgSight, avgEff := avgGenes(snap.Individuals)
 
 	text := fmt.Sprintf(
@@ -30,6 +31,68 @@ func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot) {
 		avgSpeed, avgSight, avgEff,
 	)
 	ebitenutil.DebugPrint(screen, text)
+
+	drawLegend(screen)
+}
+
+// drawLegend zeichnet eine Farblegende unten rechts.
+func drawLegend(screen *ebiten.Image) {
+	sw, sh := screen.Bounds().Dx(), screen.Bounds().Dy()
+
+	const (
+		boxW    = 160
+		boxH    = 130
+		padding = 6
+		swatch  = 10 // Größe der Farbquadrate
+		lineH   = 14
+	)
+
+	x0 := float32(sw - boxW - 4)
+	y0 := float32(sh - boxH - 4)
+
+	// Hintergrund-Box (halbtransparent schwarz)
+	vector.FillRect(screen, x0, y0, boxW, boxH, color.RGBA{0, 0, 0, 180}, false)
+
+	tx := int(x0) + padding
+	ty := int(y0) + padding
+
+	// --- Biome ---
+	ebitenutil.DebugPrintAt(screen, "Gelände:", tx, ty)
+	ty += lineH
+
+	biomes := []struct {
+		label string
+		c     color.RGBA
+	}{
+		{"Wiese", color.RGBA{40, 160, 30, 255}},
+		{"Wüste", color.RGBA{200, 180, 100, 255}},
+		{"Wasser", color.RGBA{30, 80, 160, 255}},
+	}
+	for _, b := range biomes {
+		vector.FillRect(screen, float32(tx), float32(ty), swatch, swatch, b.c, false)
+		ebitenutil.DebugPrintAt(screen, b.label, tx+swatch+4, ty)
+		ty += lineH
+	}
+
+	ty += 4 // Abstand
+
+	// --- Individuen (Genfarben) ---
+	ebitenutil.DebugPrintAt(screen, "Individuen (RGB=Gen):", tx, ty)
+	ty += lineH
+
+	genes := []struct {
+		label string
+		c     color.RGBA
+	}{
+		{"Rot   = Speed", color.RGBA{220, 60, 60, 255}},
+		{"Grün  = Sight", color.RGBA{60, 220, 60, 255}},
+		{"Blau  = Effiz.", color.RGBA{60, 60, 220, 255}},
+	}
+	for _, g := range genes {
+		vector.FillRect(screen, float32(tx), float32(ty), swatch, swatch, g.c, false)
+		ebitenutil.DebugPrintAt(screen, g.label, tx+swatch+4, ty)
+		ty += lineH
+	}
 }
 
 func avgGenes(inds []entity.Individual) (speed, sight, eff float32) {

@@ -406,6 +406,25 @@ func (s *Simulation) applyPhase2(cfg config.Config) TickStats {
 		totalPop++
 	}
 
+	// Energiekosten anwenden — MUSS nach Essen passieren damit Nahrung zählt.
+	// Phase 1 berechnet die Kosten nur lokal; hier werden sie auf SoA-Arrays geschrieben.
+	for _, p := range s.partitions {
+		for i := range p.Len {
+			if !p.Alive[i] {
+				continue
+			}
+			speedGene := p.Genes[i][entity.GeneSpeed]
+			cost := cfg.BaseEnergyCost + speedGene*0.1
+			p.Energy[i] -= cost
+			stats.EnergyConsumed += cost
+			if p.Energy[i] <= 0 {
+				stats.EnergyLostToDeath += 0
+				p.MarkDead(int32(i))
+				stats.Deaths++
+			}
+		}
+	}
+
 	stats.Population = s.totalPopulation()
 	return stats
 }

@@ -71,7 +71,7 @@ func DefaultConfig() Config {
 		MaxSpeedRange:   5,
 		MaxSightRange:   maxSight,
 
-		BaseEnergyCost:        1.0,
+		BaseEnergyCost:        3.0,
 		ReproductionThreshold: 100.0,
 		ReproductionReserve:   50.0,
 
