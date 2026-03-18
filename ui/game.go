@@ -20,6 +20,7 @@ type Game struct {
 	input      *InputHandler
 	lastTick   uint64
 	cfg        config.Config
+	viewMode   render.ViewMode
 }
 
 // NewGame erstellt ein neues Game.
@@ -32,6 +33,7 @@ func NewGame(simulation *sim.Simulation, exporter *sim.SnapshotExporter, rendere
 		hud:        NewHUD(mapW, mapH),
 		input:      &InputHandler{},
 		cfg:        cfg,
+		viewMode:   render.ViewBiom,
 	}
 }
 
@@ -54,12 +56,12 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	snap := g.exporter.Load()
 	if snap != nil && snap.Tick != g.lastTick {
-		g.renderer.RenderToBuffer(snap)
+		g.renderer.RenderToBuffer(snap, g.viewMode)
 		g.lastTick = snap.Tick
 	}
 	g.renderer.DrawBuffer(screen)
 	if snap != nil {
-		g.hud.Draw(screen, snap, g.cfg)
+		g.hud.Draw(screen, snap, g.cfg, g.viewMode)
 	}
 }
 

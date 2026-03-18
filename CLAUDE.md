@@ -1,8 +1,12 @@
 # CLAUDE.md — Evolution Simulation
 
+> Diese Datei enthält Arbeitsanweisungen für [Claude Code](https://claude.ai/claude-code),
+> den KI-Assistenten von Anthropic, der bei der Entwicklung dieses Projekts eingesetzt wird.
+> Sie ist für menschliche Beitragende nicht relevant — bitte [`CONTRIBUTING.md`](CONTRIBUTING.md) lesen.
+
 ## Projektstatus
 
-Reine Spezifikation, **0% implementiert**. Alle Entscheidungen liegen in:
+MVP vollständig (M0–M10 ✅). Alle Entscheidungen liegen in:
 
 - `docs/CONCEPT.md` — fachliche Anforderungen
 - `docs/ARCHITECTURE.md` — technische Architektur (maßgeblich)

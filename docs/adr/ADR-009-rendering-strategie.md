@@ -1,7 +1,7 @@
 # ADR-009: Rendering-Strategie — Pixel-Buffer + Zoom-abhängige Darstellung
 
 - **Datum:** 2026-03-17
-- **Status:** Accepted
+- **Status:** Partially superseded by ADR-010
 
 ---
 
@@ -153,3 +153,17 @@ des Rests bringt kaum Gewinn. Abgelehnt.
 Pixel einzeln via `Set(x, y, color)` schreiben. Nachweislich langsam —
 jeder Call hat Overhead. `WritePixels` ist der dokumentierte schnelle Pfad
 für Massen-Pixel-Updates. Abgelehnt.
+
+---
+
+## Nachtrag (2026-03-18)
+
+Der in diesem ADR beschriebene **zoom-basierte Dispatch** (Nah/Mittel/Weit abhängig
+von `tileSize`) wurde **nicht implementiert**. Stattdessen wurde ein
+**ViewMode-basierter Dispatch** eingeführt, der unabhängig vom Zoom vier
+semantisch verschiedene Kartenansichten bereitstellt (Biom, Dichte, Genotyp, Nahrung).
+
+Die Grundentscheidung — pre-allokierter RGBA-Buffer + `WritePixels` — gilt
+unverändert. Die Zoom-Strategie ist als Optimierungspfad dokumentiert.
+
+→ Siehe **ADR-010** für die ViewMode-Entscheidung.

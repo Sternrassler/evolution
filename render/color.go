@@ -36,6 +36,46 @@ func GeneColor(genes [entity.NumGenes]float32, defs []config.GeneDef) (r, g, b u
 	return
 }
 
+// DensityColor gibt eine Heatmap-Farbe für eine Populationsdichte zurück.
+// 0 = fast schwarz, maxCount = hellgelb.
+func DensityColor(count, maxCount int) (r, g, b uint8) {
+	if count == 0 || maxCount == 0 {
+		return 10, 10, 15
+	}
+	t := float32(count) / float32(maxCount)
+	if t > 1 {
+		t = 1
+	}
+	// schwarz → dunkelrot → orange → hellgelb
+	switch {
+	case t < 0.33:
+		s := t / 0.33
+		return uint8(180 * s), 0, 0
+	case t < 0.66:
+		s := (t - 0.33) / 0.33
+		return 180 + uint8(75*s), uint8(80*s), 0
+	default:
+		s := (t - 0.66) / 0.34
+		return 255, 80 + uint8(175*s), uint8(100*s)
+	}
+}
+
+// FoodOnlyColor zeigt den Nahrungsfüllstand unabhängig vom Biom.
+// Wasser bleibt blau, Land: dunkelgrau (leer) → hellgrün (voll).
+func FoodOnlyColor(biome world.BiomeType, food, foodMax float32) (r, g, b uint8) {
+	if biome == world.BiomeWater {
+		return 30, 80, 160
+	}
+	if foodMax <= 0 {
+		return 20, 20, 20
+	}
+	t := food / foodMax
+	if t > 1 {
+		t = 1
+	}
+	return uint8(20 + 30*t), uint8(20 + 200*t), uint8(20 + 20*t)
+}
+
 func normalizeGene(val float32, def config.GeneDef) uint8 {
 	span := def.Max - def.Min
 	if span <= 0 {

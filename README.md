@@ -1,47 +1,113 @@
 # Evolution Simulation
 
-Eine biologisch inspirierte Echtzeit-Simulation, die grundlegende Prinzipien von **Leben** und **Evolution** sichtbar macht. Aus zufälligen Anfangsbedingungen entstehen durch natürliche Selektion Anpassungen — beobachtbar in Echtzeit.
+Eine biologisch inspirierte Echtzeit-Simulation, die grundlegende Prinzipien von **Leben** und **Evolution** sichtbar macht. Individuen leben auf einem 2D-Grid, suchen Nahrung, verbrauchen Energie und reproduzieren sich. Gene steuern ihr Verhalten — wer sich anpasst, überlebt. Natürliche Selektion entsteht ohne explizite Regel.
 
-## Status
+---
 
-**Spezifikationsphase — 0% implementiert.**
-Alle Architekturentscheidungen sind getroffen; die Implementierung beginnt mit M0.
+## Screenshots
 
-## Konzept
-
-Individuen leben auf einem 2D-Grid, verbrauchen Energie, suchen Nahrung und reproduzieren sich. Gene steuern Verhalten (Geschwindigkeit, Sichtradius, Stoffwechsel). Wer zu wenig Energie hat, stirbt. Wer sich reproduziert, gibt seine Gene weiter — mit zufälliger Mutation. Natürliche Selektion entsteht ohne explizite Regel.
-
-## Technologie
-
-| Komponente | Technologie |
+| Biom | Dichte |
 |---|---|
-| Sprache | Go |
-| Rendering | [Ebiten](https://ebitengine.org/) |
-| Parallelisierung | Partition-basierte Phase-1/Phase-2-Architektur |
-| Tests | `pgregory.net/rapid` (Property-Tests), Race-Detector |
+| ![Biom-Ansicht](docs/screenshots/ansicht-biom.png) | ![Dichte-Ansicht](docs/screenshots/ansicht-dichte.png) |
+
+| Genotyp | Nahrung |
+|---|---|
+| ![Genotyp-Ansicht](docs/screenshots/ansicht-genotyp.png) | ![Nahrung-Ansicht](docs/screenshots/ansicht-nahrung.png) |
+
+---
+
+## Was passiert auf dem Bildschirm?
+
+Die Welt besteht aus Wiesen, Wüsten und Wasser. Nahrung wächst langsam nach — wesentlich langsamer als eine gesunde Population frisst. Wo dauerhaft Nahrungsmangel herrscht, verwüstet das Gelände. Erholt sich die Nahrung, kehrt die Wiese zurück.
+
+Vier Ansichten zeigen verschiedene Aspekte der laufenden Simulation:
+
+| Taste | Ansicht | Was man sieht |
+|---|---|---|
+| `1` | **Biom** | Geländetyp, Nahrungsfüllstand, Individuen als Farbpunkte |
+| `2` | **Dichte** | Populationsdichte pro Tile als Heatmap (schwarz → rot → gelb) |
+| `3` | **Genotyp** | Ø Genwerte pro Tile als RGB — Rot = Speed, Grün = Sight, Blau = Effizienz |
+| `4` | **Nahrung** | Nahrungsfüllstand biomunabhängig (dunkel = leer, grün = voll) |
+
+Rechts: Statistiken, aktiver Modus und Legende. Unten: Verlaufsdiagramm — Population, Nahrung und Verwüstung seit Simulationsstart.
+
+---
+
+## Steuerung
+
+| Taste | Aktion |
+|---|---|
+| `Space` | Pause / Weiter |
+| `→` | Einzelschritt (nur im Pause-Modus) |
+| `1` – `4` | Ansicht wechseln |
+| `Escape` | Beenden |
+
+---
+
+## Bauen und Starten
+
+**Voraussetzungen:** Go 1.22+, GCC, X11-Entwicklungsbibliotheken
+
+```bash
+# Debian/Ubuntu
+sudo apt install gcc libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev \
+                 libxi-dev libxxf86vm-dev
+
+# Bauen und starten
+make run
+```
+
+Nur bauen ohne Starten:
+```bash
+make build
+./evolution
+```
+
+Tests ohne X11 (für CI-Umgebungen):
+```bash
+make test-sim
+```
+
+---
 
 ## Architektur
 
 ```
 cmd/evolution
   └── ui ──────────────── render
-        └── sim ──────── sim/partition ── sim/entity
+        └── sim ──────── sim/partition ── sim/entity  ← Leaf
               └── sim/world ──────────── sim/entity
 gen ──── sim/world
 config ─ (keine Projekt-Imports)
 ```
 
+Die Simulation läuft in einer Phase-1/Phase-2-Architektur: Phase 1 berechnet alle Aktionen parallel (Goroutinen pro Partition), Phase 2 wendet sie sequentiell an. Das garantiert Determinismus bei gleichem Seed und verhindert Data Races.
+
 Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/CONCEPT.md`](docs/CONCEPT.md) · [`docs/ROADMAP.md`](docs/ROADMAP.md) · [`docs/adr/`](docs/adr/)
+
+---
 
 ## Meilensteine
 
-| Meilenstein | Inhalt |
-|---|---|
-| M0 | CI-Gates, Repo-Struktur |
-| M1–M4 | entity, config, world, gen |
-| M5–M7 | testutil, partition, sim |
-| M8–M10 | render, ui, cmd — **MVP** |
-| M11–M14 | Räuber, Umwelt, Editor, Details |
+| Meilenstein | Inhalt | Status |
+|---|---|---|
+| M0 | CI-Gates, Repo-Struktur | ✅ |
+| M1–M4 | entity, config, world, gen | ✅ |
+| M5–M7 | testutil, partition, sim | ✅ |
+| M8–M10 | render, ui, cmd — **MVP** | ✅ |
+| M11 | Räuber & Beute | geplant |
+| M12 | Umweltbedingungen | geplant |
+| M13 | Karten-Editor | geplant |
+| M14 | Detailansicht / Stammbaum | geplant |
+
+---
+
+## Beitragen
+
+Willkommen! Bitte zuerst [`CONTRIBUTING.md`](CONTRIBUTING.md) lesen.
+Für Bugs und Feature-Ideen bitte ein [Issue](../../issues) öffnen.
+
+---
 
 ## Lizenz
 
