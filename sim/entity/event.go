@@ -10,6 +10,8 @@ const (
 	EventEat                        // Nahrungsaufnahme an TargetPos
 	EventReproduce                  // Reproduktion an TargetPos
 	EventDie                        // Individuum stirbt (Energie ≤ 0)
+	EventAttack                     // Räuber greift Herbivore an TargetPos an
+	EventFlee                       // Herbivore flieht vor Räuber zu TargetPos
 )
 
 // Event beschreibt eine Aktion, die in Phase 2 angewendet wird.

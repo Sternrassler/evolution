@@ -10,6 +10,8 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - `sim/entity/gene.go`: `GeneAggression GeneKey = 3`, `NumGenes = 4` (Issue #3)
 - `sim/entity/individual.go`: `EntityType`-Typ mit `Herbivore`/`Predator`-Konstanten; `EntityType`-Feld in `Individual` (Issue #3)
 - `config/config.go`: Viertes `GeneDef` für `GeneAggression` in `DefaultConfig()` (Issue #3)
+- `sim/entity/event.go`: `EventAttack EventType = 4`, `EventFlee EventType = 5` (Issue #4)
+- `.github/workflows/ci.yml`: CI-Trigger auf `push: branches: [main]` beschränkt (doppelte Ausführung bei PRs verhindert)
 
 - `docs/adr/ADR-011`: Predator-Agent-Architektur entschieden — Option A (sim/predator-Package mit State-Value-Type + Tick-Funktion); Interface-Dispatch und EntityType-Switch im bestehenden Agent abgelehnt (Zero-Alloc-Garantie)
 - `docs/ROADMAP.md`: ADR-011-Link bei Issue #18 ergänzt; sim/predator-Eintrag an ADR-011-Entscheidung angepasst
