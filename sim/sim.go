@@ -490,14 +490,18 @@ func (s *Simulation) totalPopulation() int {
 func (s *Simulation) buildSnapshot(stats TickStats) WorldSnapshot {
 	inds := s.allIndividuals()
 	sort.Slice(inds, func(i, j int) bool { return inds[i].ID < inds[j].ID })
-	var desertCount int
 	for _, t := range s.grid.Tiles {
-		stats.TotalFood += t.Food
+		if t.Biome == world.BiomeWater {
+			continue
+		}
+		stats.LandTiles++
+		if t.Food > 0 {
+			stats.FoodTiles++
+		}
 		if t.Biome == world.BiomeDesert {
-			desertCount++
+			stats.DesertTiles++
 		}
 	}
-	stats.DesertTiles = desertCount
 	return WorldSnapshot{
 		Tiles:       s.grid.Tiles,
 		Individuals: inds,

@@ -69,10 +69,18 @@ func (h *HUD) Draw(screen *ebiten.Image, snap *sim.WorldSnapshot, cfg config.Con
 		return
 	}
 
+	land := snap.Stats.LandTiles
+	if land == 0 {
+		land = 1
+	}
+	maxPop := cfg.MaxPopulation
+	if maxPop == 0 {
+		maxPop = 1
+	}
 	h.hist.push(
-		float32(snap.Stats.Population),
-		snap.Stats.TotalFood,
-		float32(snap.Stats.DesertTiles),
+		float32(snap.Stats.Population)/float32(maxPop)*100,
+		float32(snap.Stats.FoodTiles)/float32(land)*100,
+		float32(snap.Stats.DesertTiles)/float32(land)*100,
 	)
 
 	h.drawSidebar(screen, snap, cfg)
@@ -192,7 +200,7 @@ func (h *HUD) drawBottomChart(screen *ebiten.Image) {
 	plotH := ch - float32(legendH) - float32(lineH) - float32(2*pad) // Platz für Header + Legende
 
 	// Header
-	ebitenutil.DebugPrintAt(screen, "Verlauf (Population / Nahrung / Verwüstung):", pad, h.mapH+pad)
+	ebitenutil.DebugPrintAt(screen, "Verlauf in % (Pop/MaxPop · Nahrung/Land · Wüste/Land):", pad, h.mapH+pad)
 
 	plotY := cy + float32(lineH) + float32(pad)
 
@@ -212,25 +220,17 @@ func (h *HUD) drawBottomChart(screen *ebiten.Image) {
 	}
 	startIdx := count - pts
 
-	var maxPop, maxFood, maxDesert float32 = 1, 1, 1
-	for i := range pts {
-		p, f, d := h.hist.at(startIdx + i)
-		if p > maxPop {
-			maxPop = p
-		}
-		if f > maxFood {
-			maxFood = f
-		}
-		if d > maxDesert {
-			maxDesert = d
-		}
+	// Feste 0–100%-Achse
+	yOf := func(pct float32) float32 {
+		return plotY + plotH - 1 - (pct/100)*(plotH-2)
 	}
 
-	yOf := func(val, maxVal float32) float32 {
-		if maxVal <= 0 {
-			return plotY + plotH - 1
-		}
-		return plotY + plotH - 1 - (val/maxVal)*(plotH-2)
+	// Gitternetz bei 25%, 50%, 75%
+	for _, pct := range []float32{25, 50, 75} {
+		gy := yOf(pct)
+		vector.StrokeLine(screen, cx+float32(pad), gy, cx+cw-float32(pad), gy, 1,
+			color.RGBA{45, 45, 45, 255}, false)
+		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d%%", int(pct)), int(cx)+1, int(gy)-lineH/2)
 	}
 
 	xStep := (cw - float32(2*pad)) / float32(pts-1)
@@ -241,11 +241,11 @@ func (h *HUD) drawBottomChart(screen *ebiten.Image) {
 		x0 := cx + float32(pad) + float32(i-1)*xStep
 		x1 := cx + float32(pad) + float32(i)*xStep
 
-		vector.StrokeLine(screen, x0, yOf(p0, maxPop), x1, yOf(p1, maxPop), 1,
+		vector.StrokeLine(screen, x0, yOf(p0), x1, yOf(p1), 1,
 			color.RGBA{220, 200, 50, 255}, false)
-		vector.StrokeLine(screen, x0, yOf(f0, maxFood), x1, yOf(f1, maxFood), 1,
+		vector.StrokeLine(screen, x0, yOf(f0), x1, yOf(f1), 1,
 			color.RGBA{50, 200, 50, 255}, false)
-		vector.StrokeLine(screen, x0, yOf(d0, maxDesert), x1, yOf(d1, maxDesert), 1,
+		vector.StrokeLine(screen, x0, yOf(d0), x1, yOf(d1), 1,
 			color.RGBA{200, 130, 30, 255}, false)
 	}
 
@@ -257,9 +257,9 @@ func (h *HUD) drawChartLegend(screen *ebiten.Image, pad, ty int) {
 		c color.RGBA
 		l string
 	}{
-		{color.RGBA{220, 200, 50, 255}, "Population"},
-		{color.RGBA{50, 200, 50, 255}, "Nahrung gesamt"},
-		{color.RGBA{200, 130, 30, 255}, "Verwüstung (Wüsten-Tiles)"},
+		{color.RGBA{220, 200, 50, 255}, "Population (% von Max)"},
+		{color.RGBA{50, 200, 50, 255}, "Nahrung (% der Land-Tiles)"},
+		{color.RGBA{200, 130, 30, 255}, "Wüste (% der Land-Tiles)"},
 	} {
 		vector.FillRect(screen, float32(pad), float32(ty), swatchSize, swatchSize, e.c, false)
 		ebitenutil.DebugPrintAt(screen, e.l, pad+swatchSize+4, ty)
