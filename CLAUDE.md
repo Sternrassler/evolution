@@ -6,7 +6,7 @@
 
 ## Projektstatus
 
-MVP vollständig (M0–M10 ✅). Alle Entscheidungen liegen in:
+M0–M11 ✅, Post-MVP-Erweiterungen (Räuber) teilweise umgesetzt. Alle Entscheidungen liegen in:
 
 - `docs/CONCEPT.md` — fachliche Anforderungen
 - `docs/ARCHITECTURE.md` — technische Architektur (maßgeblich)
@@ -21,6 +21,7 @@ MVP vollständig (M0–M10 ✅). Alle Entscheidungen liegen in:
 cmd/evolution
   └── ui ──────────────── render
         └── sim ──────── sim/partition ── sim/entity  ← Leaf
+              │                 └─────── sim/predator ── sim/entity, sim/world
               └── sim/world ──────────── sim/entity
 gen ──── sim/world
 config ─ (keine Projekt-Imports)
@@ -30,10 +31,11 @@ testworld, sim/testutil  ← nur in _test.go importieren
 
 **Harte Grenzen — niemals verletzen:**
 
-- `sim/`, `sim/partition/`, `sim/world/`, `sim/entity/`, `gen/` importieren **kein** `ebiten`
+- `sim/`, `sim/partition/`, `sim/predator/`, `sim/world/`, `sim/entity/`, `gen/` importieren **kein** `ebiten`
 - `render/` importiert kein `ui/`
 - `config/` importiert nichts aus dem Projekt
 - `sim/entity/` importiert keine anderen `sim/`-Packages
+- `sim/predator/` importiert nur `sim/entity` + `sim/world` (aufgerufen aus `sim/partition`)
 
 ---
 
@@ -75,6 +77,14 @@ CI Gate 2 (`tools/check_global_rand.go`) schlägt bei Verletzung fehl. → ADR-0
 
 → ADR-005, ADR-006
 
+### Räuber (sim/predator)
+
+- `predator.Tick()` nutzt `Predator.MaxSight` (separat von `MaxSightRange` der Herbivoren)
+- Kill-Wahrscheinlichkeit = `GeneAggression`; bei Misserfolg Random Walk
+- `applyPhase2` (sim.go): Räuber greifen keine anderen Räuber (inkl. sich selbst) an
+
+→ ADR-011
+
 ---
 
 ## CI Gates
@@ -88,6 +98,8 @@ CI Gate 2 (`tools/check_global_rand.go`) schlägt bei Verletzung fehl. → ADR-0
 | 5 | Allokations-Budget-Benchmark | ab M6 |
 
 `make ci` läuft durch (Gates 3+5 sind bis M6/M7 via `|| true` überbrückt).
+`make test-sim` testet ohne X11-Header (`render/` via `-tags noebiten`) — für lokale
+Entwicklung ohne X11. `make test` braucht X11-Header (render/ui/cmd).
 
 ---
 
@@ -107,7 +119,7 @@ CI Gate 2 (`tools/check_global_rand.go`) schlägt bei Verletzung fehl. → ADR-0
 | Funktion | Ziel |
 |---|---|
 | `partition.RunPhase1()` | 0 allocs |
-| `agent.Tick()` | 0 allocs |
+| `predator.Tick()` | 0 allocs |
 | `SnapshotExporter.Load/Store()` | 0 allocs |
 | `SpatialGrid.Rebuild()` | 0 allocs |
 | `render.RenderToBuffer()` | 0 allocs |
