@@ -14,21 +14,6 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
-    },
-    "serena": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "claude-code",
-        "--project",
-        "/home/ix/vscode/evolution"
-      ],
-      "env": {}
     }
   }
 }
