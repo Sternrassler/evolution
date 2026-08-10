@@ -27,11 +27,11 @@ recover_threshold   = 0.50
 
 # --- Räuber ---
 [predator]
-initial_predators = 18      # Puffer gegen stochastische Extinction ohne Überjagd
-energy_per_kill   = 7.0     # moderat höher als 5.0 → überlebt Hungerperioden
-repro_threshold   = 340.0   # nah am Original → langsames Wachstum, kein Populationsboom
-repro_reserve     = 60.0    # Startenergie Räuber-Kind
-max_sight         = 20      # 2× Herbivore-Sichtweite
+initial_predators = 1       # näher an P*≈8 → geringerer Überschuss, kleinere Schwingung
+energy_per_kill   = 10.0    # etwas mehr Buffer bei wenig Beute
+repro_threshold   = 620.0   # langsame Reproduktion → kleinere Spitzenpopulation
+repro_reserve     = 80.0    # Nachkommen starten mit mehr Energie → bessere Überlebenschaft
+max_sight         = 21      # 2× Herbivore-Sichtweite
 
 # --- Gene ---
 [[gene_definitions]]
