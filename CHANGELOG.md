@@ -9,6 +9,10 @@ Tags werden nicht rueckwirkend erfunden.
 
 ## [Unreleased]
 
+### Changed
+
+- Die dokumentierte Mindestversion der Go-Toolchain an den verbindlichen `go.mod`-Stand 1.26.1 angeglichen.
+
 ### Added
 
 - `config/config.go`: `Predator.MaxSight int` — räuber-spezifische Sichtweite unabhängig von `MaxSightRange` der Herbivoren (Default: 20, doppelte Reichweite); senkt kritische Herbivoren-Dichte H_krit von 31 auf 14 → Räuber überleben bei spärlicher Verteilung der Beute

@@ -46,7 +46,7 @@ Rechts: Statistiken (Population, Geburten/Tode, **Räuber-Anzahl, Kills**), akti
 
 ## Bauen und Starten
 
-**Voraussetzungen:** Go 1.22+, GCC, X11-Entwicklungsbibliotheken
+**Voraussetzungen:** Go 1.26.1+, GCC, X11-Entwicklungsbibliotheken
 
 ```bash
 # Debian/Ubuntu
