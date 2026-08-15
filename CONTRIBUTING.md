@@ -64,6 +64,9 @@ docs: ADR-010 für ViewMode-Entscheidung
 ```
 
 **Pflicht vor jedem Commit:** `CHANGELOG.md` im Abschnitt `[Unreleased]` aktualisieren.
+Ein Release entsteht erst nach validiertem Meilensteinabschluss und fuehrt
+SemVer-Eintrag sowie Git-Tag gemeinsam ein. Die reine Pflege von
+`[Unreleased]` ist noch kein Release.
 
 ---
 

@@ -2,6 +2,10 @@
 
 Alle wesentlichen Änderungen an diesem Projekt werden hier dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
+Der aktuelle Stand bleibt bis zur validierten Fertigstellung des laufenden
+Predator-Tunings unter `[Unreleased]`. Erst ein bewusst ausgelieferter Stand
+erhaelt gemeinsam einen SemVer-Eintrag und den passenden Git-Tag; historische
+Tags werden nicht rueckwirkend erfunden.
 
 ## [Unreleased]
 
@@ -143,7 +147,7 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - **M9** `ui`: `game.go` (`Game`-Struct, implementiert `ebiten.Game`-Interface, synchrones `Step()` in `Update()` per ADR-008), `hud.go` (`HUD` mit `ebitenutil.DebugPrint`, Tick-/Populationsstatistiken und Durchschnittsgene), `input.go` (`InputHandler` mit Space=Pause, ArrowRight=NextStep, Escape=Beenden via `inpututil.IsKeyJustPressed`)
 - **M10** `cmd/evolution`: `main.go` (MVP-Binary-Einstiegspunkt: `DefaultConfig`, seeded RandSource, `sim.New`, `render.NewRenderer`, `ui.NewGame`, `ebiten.RunGame` mit 20 TPS); `go build ./cmd/evolution/` grün
 
-## [0.1.0] — 2026-03-17
+## Historischer Meilenstein 0.1.0 — 2026-03-17
 
 ### Added
 
